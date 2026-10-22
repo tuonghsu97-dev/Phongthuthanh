@@ -8,22 +8,31 @@
 <style>*{box-sizing:border-box}
 html,body{margin:0;height:100%;background:#05070c;overflow:hidden;font-family:"Segoe UI",Roboto,Arial,sans-serif;color:#eef2f7;user-select:none}
 #wrap{position:absolute;left:0;top:0;width:1280px;height:720px;transform-origin:0 0;overflow:hidden;background:#101418}
+/* Theme mặc định — mỗi nền văn minh ghi đè các biến này (data-theme trên #wrap) */
+#wrap{--bg:#0d1424;--bg2:#16203a;--panel:#111a2ef7;--line:#5b6f91;--acc:#ffd54f;--acc2:#c49b2c;--btn1:#3b4a63;--btn2:#28344a;--hfont:"Segoe UI",Roboto,Arial,sans-serif;--orn:"✦";--pat:linear-gradient(transparent,transparent);--civ:#ffd54f}
+#wrap[data-theme=europe]{--bg:#121829;--bg2:#1e2943;--panel:#141c31f7;--line:#8a9bb8;--acc:#e8c15a;--acc2:#a8842a;--btn1:#394a6d;--btn2:#202b45;--hfont:"Palatino Linotype","Book Antiqua",Georgia,serif;--pat:repeating-linear-gradient(45deg,#ffffff07 0 2px,transparent 2px 11px)}
+#wrap[data-theme=rome]{--bg:#1c1214;--bg2:#2d1b1e;--panel:#221518f7;--line:#cbb894;--acc:#f0d27a;--acc2:#a07a2c;--btn1:#7a2a2a;--btn2:#481616;--hfont:"Palatino Linotype","Book Antiqua",Georgia,serif;--pat:linear-gradient(90deg,#ffffff09 1px,transparent 1px) 0 0/16px 100%}
+#wrap[data-theme=viking]{--bg:#18120e;--bg2:#2a1f17;--panel:#1f1712f7;--line:#9c7a5b;--acc:#e0aa48;--acc2:#8a5a24;--btn1:#5d4335;--btn2:#36261d;--hfont:"Palatino Linotype",Georgia,serif;--pat:repeating-linear-gradient(0deg,#ffffff06 0 3px,transparent 3px 10px)}
+#wrap[data-theme=asia]{--bg:#190c0c;--bg2:#2c1111;--panel:#1c0d0df7;--line:#c8473a;--acc:#f5c542;--acc2:#a8791c;--btn1:#8e1f1f;--btn2:#4b0d0d;--pat:radial-gradient(circle at 0 0,#f5c54212 0 5px,transparent 6px) 0 0/18px 18px}
+#wrap[data-theme=vn]{--bg:#0e180f;--bg2:#1a2a17;--panel:#121f12f7;--line:#b8935a;--acc:#ecc86c;--acc2:#8f6d33;--btn1:#4c6b2b;--btn2:#2b4019;--pat:repeating-radial-gradient(circle at 50% 50%,#ecc86c0e 0 2px,transparent 2px 13px)}
+#wrap[data-theme=desert]{--bg:#1b1407;--bg2:#2d2210;--panel:#20180af7;--line:#2fb3a1;--acc:#f2c14e;--acc2:#a97f22;--btn1:#8a6420;--btn2:#4f3910;--pat:repeating-linear-gradient(60deg,#f2c14e0b 0 2px,transparent 2px 12px),repeating-linear-gradient(-60deg,#f2c14e0b 0 2px,transparent 2px 12px)}
+#wrap[data-theme=maya]{--bg:#0b1915;--bg2:#12281f;--panel:#0e1f1af7;--line:#45a985;--acc:#e8c15a;--acc2:#8f7428;--btn1:#1f6b55;--btn2:#113e31;--pat:repeating-linear-gradient(90deg,#45a98510 0 4px,transparent 4px 8px,#45a98510 8px 10px,transparent 10px 22px)}
 #game{position:absolute;inset:0}
 .hide{display:none!important}
-button{font:inherit;font-size:12px;color:#eef2f7;background:linear-gradient(#3b4a63,#28344a);border:1px solid #5b6f91;border-radius:6px;padding:4px 8px;cursor:pointer}
-button:hover{filter:brightness(1.25)}button:disabled{opacity:.4;cursor:default}button.on{background:linear-gradient(#c49b2c,#8a6a12);border-color:#ffd54f}
+button{font:inherit;font-size:12px;color:#eef2f7;background:linear-gradient(var(--btn1),var(--btn2));border:1px solid var(--line);border-radius:6px;padding:4px 8px;cursor:pointer}
+button:hover{filter:brightness(1.25)}button:disabled{opacity:.4;cursor:default}button.on{background:linear-gradient(var(--acc2),color-mix(in srgb,var(--acc2) 60%,#000));border-color:var(--acc)}
 button.big{font-size:14px;padding:7px 14px;font-weight:600}
 kbd{background:#0006;border:1px solid #fff4;border-radius:3px;padding:0 4px;font-size:10px}
 #hud{position:absolute;inset:0;pointer-events:none}
 #hud>*{pointer-events:auto}
-#top{position:absolute;left:0;right:0;top:0;height:40px;display:flex;align-items:center;gap:12px;padding:0 10px;background:linear-gradient(#0d1424f0,#0d142490);border-bottom:1px solid #ffffff22;font-size:13px}
-#waveBox b{font-size:18px;color:#ffd54f}
-#phaseBox{display:flex;align-items:center;gap:6px;min-width:330px}
-#phName{font-weight:700;min-width:105px}
+#top{position:absolute;left:0;right:0;top:0;height:40px;display:flex;align-items:center;gap:12px;padding:0 10px;background:var(--pat),linear-gradient(var(--bg2),color-mix(in srgb,var(--bg) 80%,transparent));border-bottom:2px solid var(--line);box-shadow:0 2px 0 #0007;font-size:13px}
+#waveBox{font-family:var(--hfont);display:flex;align-items:baseline;gap:3px}#waveBox b{font-size:18px;color:var(--acc)}#waveBox small{color:#aab}
+#phaseBox{display:flex;align-items:center;gap:6px;min-width:250px}
+#phName{font-size:20px;min-width:26px;text-align:center}
 .pbar{width:120px;height:8px;background:#0008;border-radius:4px;overflow:hidden}
 .pbar i{display:block;height:100%;background:#ffd54f}.pbar i.night{background:#6c7ae0}.pbar i.dusk{background:#ff7a3d}.pbar i.dawn{background:#ffb27a}
 #phTime{min-width:56px;color:#ddd}
-#btnReady{background:linear-gradient(#2e8b57,#1e5e3a);border-color:#4cd18a}
+#btnReady{background:linear-gradient(#2e8b57,#1e5e3a);border-color:#4cd18a;font-size:15px;font-weight:700;padding:3px 12px}
 #lives span{color:#ff4d6d;font-size:15px}#lives .off{color:#444}
 #forecast{flex:1;font-size:12px;color:#ccd}
 #resBox{display:flex;gap:9px;align-items:center}
@@ -39,14 +48,15 @@ kbd{background:#0006;border:1px solid #fff4;border-radius:3px;padding:0 4px;font
 #cardChip span{background:#0d1424d8;border:1px solid #ffffff33;border-radius:12px;padding:3px 10px}
 #cardChip .gold{border-color:#ffd54f;color:#ffd54f}#cardChip .tool{border-color:#4cd18a;color:#b6f5cf}
 #cardChip button{padding:1px 6px;font-size:11px;margin-left:6px}
-#bottom{position:absolute;left:0;right:0;bottom:0;height:150px;display:flex;gap:8px;padding:6px 8px;background:linear-gradient(#0d142400,#0d1424f2 22%);}
+#bottom{position:absolute;left:0;right:0;bottom:0;height:150px;display:flex;gap:8px;padding:6px 8px;background:linear-gradient(transparent,color-mix(in srgb,var(--bg) 95%,transparent) 22%);}
+#bottom::before{content:"";position:absolute;left:0;right:0;top:30px;height:2px;background:linear-gradient(90deg,transparent,var(--line) 15%,var(--acc) 50%,var(--line) 85%,transparent);opacity:.7;pointer-events:none}
 #minimap{width:150px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,38px) 20px;gap:2px;align-self:flex-end}
 .mm{border:1px solid #0008;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:16px;opacity:.8}
 .mm.ours{outline:2px solid #ffd54f;opacity:1}.mm.boss{background:#2b1530}
 .mmi{grid-column:1/4;font-size:10px;text-align:center;color:#ccd;cursor:pointer}
 #center{flex:1;display:flex;flex-direction:column;gap:5px;justify-content:flex-end}
 #fieldRow{display:flex;gap:6px;align-items:stretch}
-.port{width:170px;background:#16203af0;border:2px solid var(--r);border-left:5px solid var(--g);border-radius:7px;padding:3px 5px;font-size:11px;position:relative}
+.port{width:170px;background:var(--pat),linear-gradient(var(--bg2),var(--bg));border:2px solid var(--r);border-left:5px solid var(--g);border-radius:7px;padding:3px 5px;font-size:11px;position:relative}
 .port.sel{box-shadow:0 0 0 2px #ffd54f,0 0 12px #ffd54f88}.port.dead{opacity:.45;filter:grayscale(1)}
 .port.empty{display:flex;align-items:center;justify-content:center;color:#889;border-style:dashed;border-color:#445;height:84px}
 .pt{display:flex;justify-content:space-between;cursor:pointer;white-space:nowrap;overflow:hidden}.pt b{overflow:hidden;text-overflow:ellipsis}
@@ -55,49 +65,53 @@ kbd{background:#0006;border:1px solid #fff4;border-radius:3px;padding:0 4px;font
 .eq{display:flex;gap:3px;align-items:center}.eq span{width:22px;height:20px;background:#0006;border-radius:3px;display:flex;align-items:center;justify-content:center}
 .mini{padding:0 5px;margin-left:auto}
 .sk{display:flex;gap:4px;margin-top:3px}
-.sk button{position:relative;width:36px;font-weight:700}
+.sk button{position:relative;width:36px;font-weight:700;font-size:16px;padding:2px 0}
+.sk button kbd,.fbtn kbd,#btnRow kbd,.ibtn kbd{position:absolute;right:1px;bottom:1px;font-size:8px;padding:0 2px;line-height:1.2;color:#ddd}
 .sk button[data-cd]:not([data-cd=""])::after,.fbtn[data-cd]:not([data-cd=""])::after{content:attr(data-cd);position:absolute;inset:0;background:#000b;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#ffd54f}
 .sk .auto{width:26px;font-size:10px}.sk .auto.on{background:#2e8b57}
-.fbtn{position:relative;width:96px;font-size:18px;font-weight:800;background:linear-gradient(#a0522d,#5c2c12);border-color:#ffb27a;line-height:1.1}
-.fbtn small{font-size:10px;font-weight:400}
-.gar{width:110px;font-size:11px;background:#16203af0;border:1px dashed #6a7aa0;border-radius:7px;padding:6px;display:flex;align-items:center;cursor:pointer}
+.fbtn{position:relative;width:84px;font-size:30px;font-weight:800;background:radial-gradient(circle at 50% 35%,color-mix(in srgb,var(--civ) 70%,#fff2),color-mix(in srgb,var(--civ) 45%,#000));border:2px solid var(--acc);border-radius:50%/40%;line-height:1.1;box-shadow:0 0 12px color-mix(in srgb,var(--acc) 50%,transparent)}
+.gar{width:64px;font-size:20px;background:var(--pat),linear-gradient(var(--bg2),var(--bg));border:1px dashed var(--line);border-radius:7px;padding:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;line-height:1.1}
+.gar small{font-size:10px;color:var(--acc)}
 #bench{display:flex;gap:5px}
-.bch{width:105px;height:34px;background:#16203af0;border:1px solid var(--r);border-left:4px solid var(--g);border-radius:5px;font-size:10px;padding:2px 5px;cursor:pointer;display:flex;flex-direction:column;justify-content:center;overflow:hidden;white-space:nowrap}
-.bch span{color:#ffd54f}.bch.empty{border:1px dashed #334;color:#556;align-items:center}
+.bch{width:62px;height:36px;background:linear-gradient(var(--bg2),var(--bg));border:1px solid var(--r);border-bottom:3px solid var(--g);border-radius:6px;font-size:9px;padding:1px 3px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;white-space:nowrap;line-height:1.05}
+.bch .gi{font-size:15px;font-style:normal}.bch span{color:var(--acc);font-size:9px}.bch.empty{border:1px dashed #445;color:#556;font-size:14px}
 #right{width:300px;display:flex;flex-direction:column;gap:4px;justify-content:flex-end}
 #wslots,#wstore{display:flex;gap:4px;align-items:center}#wstore small{font-size:10px;color:#99a;width:26px}
 .ws{width:42px;height:38px;border:1px dashed #556;border-radius:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;color:#667;cursor:pointer}
-.ws.has{border:2px solid var(--r);color:#fff;background:#1d2945}.ws.has span{color:#ffd54f;font-size:9px}.ws.lock{opacity:.4}.ws.st{width:36px;height:30px}
-#btnRow{display:flex;flex-wrap:wrap;gap:3px}#btnRow button{font-size:11px;padding:3px 6px}
+.ws.has{border:2px solid var(--r);color:#fff;background:linear-gradient(var(--bg2),var(--bg))}.ws.has b{font-size:17px;line-height:1}.ws.has span{color:var(--acc);font-size:9px}.ws.lock{opacity:.4}.ws.st{width:36px;height:30px}.ws.st.has b{font-size:14px}
+#btnRow{display:flex;flex-wrap:wrap;gap:4px}#btnRow button{position:relative;width:44px;height:38px;font-size:20px;padding:0}
+#btnRow .badge{position:absolute;top:-5px;right:-5px;font-size:10px}
 .badge{background:#e74c3c;border-radius:8px;padding:0 5px;font-style:normal}
 .blink{animation:bl 1s infinite}@keyframes bl{50%{box-shadow:0 0 10px #ffd54f}}
 #panel{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#0006;z-index:5}
 #panel.p-hero,#panel.p-build{background:transparent;pointer-events:none}#panel.p-hero .pbox,#panel.p-build .pbox{pointer-events:auto}
-.pbox{width:980px;max-height:560px;background:#111a2ef7;border:1px solid #ffffff33;border-radius:12px;box-shadow:0 10px 40px #000a;display:flex;flex-direction:column}
+.pbox{width:980px;max-height:560px;background:var(--pat),linear-gradient(var(--bg2),var(--panel) 60px);border:2px solid var(--line);border-radius:12px;box-shadow:0 0 0 1px #000,inset 0 0 0 1px color-mix(in srgb,var(--acc) 35%,transparent),0 10px 40px #000a;display:flex;flex-direction:column}
 .p-hero .pbox{width:620px}.p-build .pbox{width:820px}.p-cards .pbox{width:860px}
-.phead{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;border-bottom:1px solid #ffffff22;font-size:16px;font-weight:700}
+.phead{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;border-bottom:1px solid var(--line);font-size:16px;font-weight:700;font-family:var(--hfont);color:var(--acc);background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--civ) 22%,transparent),transparent)}
+.phead span::before,.phead span::after{content:var(--orn);margin:0 8px;opacity:.75;font-size:13px}
 #pbody{overflow:auto;padding:10px 14px;font-size:12px}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0}
 .note{color:#aab;font-size:11px}
-h3{margin:10px 0 4px;font-size:13px;color:#ffd54f}h2{margin:4px 0}
+h3{margin:10px 0 4px;font-size:13px;color:var(--acc);font-family:var(--hfont)}h2{margin:4px 0;font-family:var(--hfont)}
 .tag{border-radius:8px;padding:1px 6px;font-size:10px;color:#fff}
 .shop,.cards{display:flex;gap:8px;flex-wrap:wrap}
-.hc{position:relative;width:180px;background:#1b2642;border:2px solid var(--r);border-top:5px solid var(--g,var(--r));border-radius:8px;padding:6px;display:flex;flex-direction:column;gap:3px}
+.hc{position:relative;width:180px;background:linear-gradient(color-mix(in srgb,var(--g,var(--r)) 18%,var(--bg2)),var(--bg) 70%);border:2px solid var(--r);border-top:5px solid var(--g,var(--r));border-radius:8px;padding:6px;display:flex;flex-direction:column;gap:3px}
 .hc small{font-size:10px;color:#ccd}.hc .sk{display:block;color:#9fd3ff}.hc .pas{color:#ffd54f}.hc .own{color:#7bed9f}.hc button{margin-top:auto}
 .hc.empty{align-items:center;justify-content:center;color:#667;border-style:dashed;min-height:150px}
 .lk{position:absolute;right:5px;top:3px;cursor:pointer}
 .smith,.wl{display:flex;flex-wrap:wrap;gap:5px}.sm{background:#1b2642;border:1px solid var(--r,#334);border-radius:6px;padding:3px 6px;display:flex;gap:6px;align-items:center}
 .board{display:flex;gap:10px}.br{flex:1}.bh{font-weight:700;font-size:13px;margin-bottom:3px}
 .tier{display:flex;gap:2px;align-items:center;margin-bottom:3px}.tier.locked{opacity:.35}.tn{width:20px;font-size:10px;color:#99a}
-.cell{position:relative;width:27px;height:27px;border:1px solid var(--c);border-radius:4px;font-size:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:#0006;text-align:center;line-height:1}
+.cell{position:relative;width:27px;height:27px;border:1px solid var(--c);border-radius:4px;font-size:13px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:#0006;text-align:center;line-height:1}
 .cell.lv{background:color-mix(in srgb,var(--c) 55%,#000)}.cell.ks{border-radius:50%;border-width:2px}.cell.sug{box-shadow:0 0 0 2px #ffd54f}.cell.syn{border-style:double;border-width:3px}
 .cell i{position:absolute;right:1px;bottom:0;font-size:9px;font-style:normal;color:#ffd54f;font-weight:700}
-.tools{display:flex;flex-wrap:wrap;gap:5px}.tools button{display:flex;flex-direction:column;min-width:86px}.tools small{font-size:10px;color:#ccd}
+.tools{display:flex;flex-wrap:wrap;gap:6px}.tools button{display:flex;flex-direction:column;align-items:center;min-width:72px;padding:4px 6px}.tools button b{font-size:24px;line-height:1.1}.tools small{font-size:10px;color:#ccd}
 .tabs{display:flex;gap:4px;margin-bottom:6px}
 table.info{border-collapse:collapse;width:100%;margin:4px 0}table.info td,table.info th{border:1px solid #ffffff1a;padding:3px 6px;font-size:11px;text-align:left}table.info th{color:#ffd54f}
-.card{width:260px;min-height:120px;background:linear-gradient(#22304f,#172238);border:2px solid #5b6f91;border-radius:10px;padding:10px;cursor:pointer;transition:transform .1s}
+.card{position:relative;width:260px;min-height:120px;background:var(--pat),linear-gradient(var(--bg2),var(--bg));border:2px solid var(--line);border-radius:10px;padding:10px;cursor:pointer;transition:transform .1s;text-align:center}
 .card:hover{transform:translateY(-4px);border-color:#fff}.card.gold{border-color:#ffd54f;background:linear-gradient(#5a4512,#2b2210)}
-.card b{display:block;font-size:15px;margin:3px 0}.card small{color:#9fd3ff}.card p{margin:4px 0;color:#dde}
+.card .ci{display:block;font-size:34px;line-height:1.1}
+.card b{display:block;font-size:15px;margin:3px 0;font-family:var(--hfont)}.card small{position:absolute;left:8px;top:6px;color:#9fd3ff}.card p{margin:4px 0;color:#dde}
 .rep{background:#1e3a2a;border:1px solid #2ecc71;border-radius:8px;padding:8px;margin-bottom:8px}.rep.bad{background:#3a1e22;border-color:#e74c3c}
 .hdet h2{color:var(--r)}.eqs{background:#0006;border-radius:4px;padding:3px 8px}
 #menu{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(#0000,#000a);z-index:6}
@@ -109,18 +123,37 @@ table.info{border-collapse:collapse;width:100%;margin:4px 0}table.info td,table.
 .diffs{display:flex;gap:8px}.dcard{flex:1;background:#1b2642;border:2px solid #334;border-radius:8px;padding:8px;cursor:pointer;display:flex;flex-direction:column;gap:4px;font-size:12px}
 .dcard.on{border-color:#ffd54f}.dcard.lock{opacity:.4;cursor:default}
 .muts{display:flex;flex-direction:column;gap:3px;font-size:12px}.mut{cursor:pointer}.mut.on{color:#ffd54f}
-.civs{display:flex;gap:8px}.ccard{flex:1;background:#1b2642;border:2px solid #334;border-top:6px solid var(--c);border-radius:8px;padding:8px;font-size:11px;cursor:pointer;display:flex;flex-direction:column;gap:4px}
+.civs{display:flex;gap:8px}.ccard{flex:1;background:linear-gradient(color-mix(in srgb,var(--c) 22%,var(--bg2)),var(--bg) 75%);border:2px solid #334;border-top:6px solid var(--c);border-radius:8px;padding:8px;font-size:11px;cursor:pointer;display:flex;flex-direction:column;gap:4px}
 .ccard.on{border-color:#ffd54f;border-top-color:var(--c);box-shadow:0 0 16px #ffd54f66}.ccard .ch{display:flex;justify-content:space-between;font-size:15px}.ccard .pas{color:#ffd54f}.ccard .key{color:#9fd3ff}
 .zgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0}.zc{min-height:84px;border:2px solid #0008;border-radius:8px;padding:6px;cursor:pointer;font-size:11px;text-shadow:0 1px 2px #000;display:flex;flex-direction:column;gap:3px}
 .zc.on{border-color:#ffd54f;box-shadow:0 0 12px #ffd54f}.zc.ours{outline:3px solid #ffd54f}.zc.boss{background:#2b1530;align-items:center;justify-content:center;cursor:default}
 .slots{display:flex;flex-direction:column;gap:6px}.slot{background:#1b2642;padding:6px;border-radius:6px;display:flex;gap:8px;align-items:center}
 .help{font-size:12px}.help ol{padding-left:18px}.keys td{padding:2px 8px}.keys td:nth-child(odd){color:#ffd54f;font-weight:700}
 #toasts{position:absolute;top:96px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:4px;pointer-events:none;z-index:7}
-.toast{background:#0d1424e8;border:1px solid #ffd54f88;border-radius:8px;padding:5px 14px;font-size:13px;transition:opacity .5s;max-width:700px;text-align:center}.toast.out{opacity:0}
+.toast{background:color-mix(in srgb,var(--bg) 92%,transparent);border:1px solid var(--line);border-radius:8px;padding:5px 14px;font-size:13px;transition:opacity .5s;max-width:700px;text-align:center}.toast.out{opacity:0}
 #tip{position:absolute;display:none;max-width:300px;white-space:pre-line;background:#05070cf0;border:1px solid #ffd54f88;border-radius:6px;padding:6px 8px;font-size:11px;pointer-events:none;z-index:9}
 .civs.all{flex-wrap:wrap}.civs.all .ccard{flex:0 0 calc(20% - 7px)}
 .civs.all .ccard{padding:6px;gap:2px;font-size:10.5px}.civs.all .ccard .pas{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .mbox .mbtns{position:sticky;bottom:-18px;background:#0d1424f2;padding:8px 0;margin-bottom:-6px}
+.mbox{background:var(--pat),linear-gradient(var(--bg2),var(--bg));border-color:var(--line)}.mbox .mbtns{background:color-mix(in srgb,var(--bg) 95%,transparent)}
+.mbox h1{font-family:var(--hfont);color:var(--acc)}
+/* ---- Hướng dẫn tương tác ---- */
+#coach{position:absolute;top:48px;right:10px;width:340px;z-index:8;display:flex;gap:10px;align-items:flex-start;background:var(--pat),linear-gradient(var(--bg2),var(--bg));border:2px solid var(--acc);border-radius:12px;padding:10px 12px;box-shadow:0 6px 24px #000c,0 0 18px color-mix(in srgb,var(--acc) 35%,transparent);transition:top .25s,left .25s,right .25s}
+#coach.left{right:auto;left:10px;transition:none}#coach.top{transition:none}#coach.top{top:2px;left:50%;right:auto;transform:translateX(-50%);width:520px}
+#coach .cIco{font-size:34px;line-height:1;filter:drop-shadow(0 2px 2px #000)}
+#coach .cBody{flex:1;font-size:12.5px;line-height:1.35}
+#coach .cTitle{display:block;font-family:var(--hfont);font-size:15px;color:var(--acc);margin-bottom:2px}
+#coach .cBtns{display:flex;gap:6px;margin-top:6px;align-items:center}
+#coach .cProg{position:absolute;right:10px;top:6px;font-size:10px;color:#aab}
+#coach .cSkip{background:none;border:none;color:#99a;text-decoration:underline;padding:0;font-size:11px}
+#tutHi{position:absolute;z-index:8;pointer-events:none;border:3px solid var(--acc);border-radius:10px;box-shadow:0 0 0 4000px #0000,0 0 16px var(--acc);animation:tutP 1s infinite}
+#tutHi.round{border-radius:50%}
+#tutHi::after{content:"👇";position:absolute;left:50%;top:-34px;transform:translateX(-50%);font-size:26px;animation:tutB .7s infinite alternate}
+#tutHi.below::after{content:"👆";top:auto;bottom:-34px}
+@keyframes tutP{50%{box-shadow:0 0 0 4000px #0000,0 0 26px var(--acc);border-color:#fff}}
+@keyframes tutB{to{margin-top:-8px}}
+.tutDone{animation:tutOk .6s}@keyframes tutOk{from{scale:1.06}}
+.fbtn[data-cd]::after{border-radius:50%/40%}
 </style>
 </head>
 <body>
@@ -146,6 +179,8 @@ table.info{border-collapse:collapse;width:100%;margin:4px 0}table.info td,table.
   <div id="panel" class="hide"><div class="pbox"><div class="phead"><span id="ptitle"></span><button id="pclose">✕</button></div><div id="pbody"></div></div></div>
   <div id="menu" class="hide"></div>
   <div id="toasts"></div>
+  <div id="tutHi" class="hide"></div>
+  <div id="coach" class="hide"><div class="cIco"></div><div class="cBody"><b class="cTitle"></b><div class="cText"></div><div class="cBtns"></div></div><div class="cProg"></div></div>
   <div id="tip"></div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js"></script>
@@ -537,7 +572,7 @@ function newGame(o) {
     cells: {}, statPts: 0, spentPts: { cong: 0, phep: 0, thu: 0 }, lastRespec: -99, seals: {},
     ext: {}, belt: {}, procs: {}, broken: {}, traps: [], freeTraps: 0,
     card: null, cardFlags: {}, cardsSeen: [], wins: 0, kills: 0, fame: 0, pakalStacks: 0, odaStacks: 0,
-    meteorShards: 0, gems: [], log: [],
+    meteorShards: 0, gems: [], log: [], tut: o.tut ? { i: 0 } : null,
   };
   // Tướng key được tặng 1★
   G.heroes.push({ uid: uid(), id: c.key, star: 1, eq: [], loc: 'bench', x: 0, y: 0, auto: true });
@@ -1121,7 +1156,7 @@ function startDay(loaded) {
   R.scoutT = G.wave >= 2 ? 18 : -1; R.scoutN = G.wave >= 4 ? 2 : 1;
   G.phase = 'day'; recalc(); saveGame('auto'); UI.refresh(true);
   if (!loaded) UI.openShopAuto();
-  if (G.wave === 1 && !loaded && !G.tutDone) { G.tutDone = true; const tips = ['☀️ Ban ngày 90s: bấm R để roll/mua tướng', '🔨 Bấm B → Máy khai thác (click mỏ) → Băng chuyền (kéo chuột từ mỏ về viền xanh quanh thành)', '🚩 Click tướng ở Hàng chờ → Đặt ra ngoài thành; click mỏ để dân thu hoạch tay', '🌙 Ban đêm: Q/W skill tướng, F skill tòa, chuột phải điều khiển tướng. Enter = Sẵn sàng']; tips.forEach((t, i) => setTimeout(() => toast(t), 400 + i * 2800)); }
+  if (G.wave === 1 && !loaded && !G.tutDone && !G.tut) { G.tutDone = true; const tips = ['☀️ Ban ngày 90s: bấm R để roll/mua tướng', '🔨 Bấm B → Máy khai thác (click mỏ) → Băng chuyền (kéo chuột từ mỏ về viền xanh quanh thành)', '🚩 Click tướng ở Hàng chờ → Đặt ra ngoài thành; click mỏ để dân thu hoạch tay', '🌙 Ban đêm: Q/W skill tướng, F skill tòa, chuột phải điều khiển tướng. Enter = Sẵn sàng']; tips.forEach((t, i) => setTimeout(() => toast(t), 400 + i * 2800)); }
 }
 function startDusk() {
   setPhase('dusk', CONFIG.PHASE.dusk);
@@ -1216,8 +1251,8 @@ function worldUpdate(delta) {
   const dt = Math.min(.05, delta / 1000) * CONFIG.SPEED;
   R.time += dt;
   if (G.phase === 'dawn') { if (!R.waitCard) { R.phaseT -= dt; if (R.phaseT <= 0) startDay(); } }
-  else if (G.phase === 'day') { R.phaseT -= dt; economyUpdate(dt); scoutUpdate(dt); if (R.phaseT <= 0) startDusk(); }
-  else if (G.phase === 'dusk') { R.phaseT -= dt; economyUpdate(dt); if (R.phaseT <= 0) startNight(); }
+  else if (G.phase === 'day') { if (!Tut.holds()) { R.phaseT -= dt; scoutUpdate(dt); } economyUpdate(dt); if (R.phaseT <= 0) startDusk(); }
+  else if (G.phase === 'dusk') { if (!Tut.holds()) R.phaseT -= dt; economyUpdate(dt); if (R.phaseT <= 0) startNight(); }
   else if (G.phase === 'night') {
     R.phaseT -= dt; R.nightT += dt;
     while (R.plan && R.spawnIdx < R.plan.q.length && R.plan.q[R.spawnIdx].t <= R.nightT) { const e = R.plan.q[R.spawnIdx++]; spawnMon(e.type, R.lanes[e.lane], e.elite); }
@@ -1412,7 +1447,7 @@ function onUp(p) {
   if (m && (G.phase === 'day' || G.phase === 'dusk')) {
     if (R.jobs.length >= CONFIG.HARVEST.max) return toast('Dân đang thu hoạch — chờ xong');
     if (R.jobs.some(j => j.mine === m)) return;
-    R.jobs.push({ mine: m, t: 0, max: CONFIG.HARVEST.time * (1 - M.harvT) }); sfx('ui'); return;
+    R.jobs.push({ mine: m, t: 0, max: CONFIG.HARVEST.time * (1 - M.harvT) }); Tut.flag('harvest'); sfx('ui'); return;
   }
   R.sel = null; UI.refresh();
 }
@@ -1443,7 +1478,7 @@ World.selectIdx = i => { const f = fieldHeroes()[i]; if (f) World.select(f.uid);
 World.order = (x, y) => {
   const rt = R.sel && R.heroRT.get(R.sel); if (!rt || rt.dead) return;
   if (G.phase !== 'night' && Math.hypot(x - R.tower.x, y - R.tower.y) < CONFIG.LEASH) { rt.h.x = x; rt.h.y = y; }
-  rt.manual = { x, y }; rt.manualUntil = R.time + 5; rt.target = null; vis({ type: 'ring', x, y, r0: 16, r1: 4, color: 0x2ecc71, dur: .4 });
+  rt.manual = { x, y }; rt.manualUntil = R.time + 5; rt.target = null; vis({ type: 'ring', x, y, r0: 16, r1: 4, color: 0x2ecc71, dur: .4 }); Tut.flag('order');
 };
 World.heroRT = u => R.heroRT && R.heroRT.get(u);
 World.syncHeroes = () => {
@@ -1748,7 +1783,7 @@ World.castW = u => {
   const rt = R.heroRT.get(u || R.sel || (fieldHeroes()[0] || {}).uid); if (!rt || rt.dead || G.phase !== 'night' || rt.cast) return;
   if (rt.cdW > 0) return; const w = HERO[rt.h.id].w;
   rt.cdW = w.cd * (1 - M.cdrH); rt.cast = { t: .5 * (1 - M.castH) }; vis({ type: 'ring', x: rt.x, y: rt.y, r0: 34, r1: 8, color: 0xffffff, dur: rt.cast.t });
-  UI.refresh();
+  Tut.flag('w'); UI.refresh();
 };
 function doHeroW(rt, again) {
   const w = HERO[rt.h.id].w, seal = G.seals[rt.h.uid] || 0;
@@ -1761,7 +1796,7 @@ function doHeroW(rt, again) {
 World.castF = () => {
   if (G.phase !== 'night' || (R.tcd || 0) > 0 || R.tcast) return;
   const ts = civ().ts; R.tcd = ts.cd * (1 - M.cdrT); R.tcast = .4 * (1 - M.castT);
-  vis({ type: 'ring', x: R.tower.x, y: R.tower.y, r0: 70, r1: 20, color: 0xffd54f, dur: R.tcast }); UI.refresh();
+  vis({ type: 'ring', x: R.tower.x, y: R.tower.y, r0: 70, r1: 20, color: 0xffd54f, dur: R.tcast }); Tut.flag('f'); UI.refresh();
 };
 function doTowerSkill() {
   const ts = civ().ts, pow = (1 + M.tEnergy + (['stunNova', 'sacrifice', 'slowField', 'beam'].includes(ts.type) ? M.spell : M.atk * .5)) * (1 + .1 * (G.tower.age - 1)) * (1 + .08 * (G.wave - 1));
@@ -1992,6 +2027,21 @@ function combatUpdate(dt) {
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const PHASE_N = { place: '📍 Chọn vị trí thành', dawn: '🌅 Bình minh', day: '☀️ Ban ngày', dusk: '🌇 Hoàng hôn', night: '🌙 Ban đêm', end: '⏳' };
+// ---------- Biểu tượng thay chữ ----------
+const GI = { cong: '⚔️', phep: '🔮', thu: '🛡️', trieu: '📯', eco: '🌾' };
+const WI = { liennoa: '🏹', catapult: '🪨', oil: '🛢️', fence: '🚧', windmill: '🌬️', ballista: '🎯', cannon: '💣', net: '🕸️', drum: '🥁', mirror: '🪞', granary: '🏚️', tesla: '⚡', mines: '🧨', dshield: '🔰', dragon: '🐉', observe: '🔭', meteor: '☄️', clock: '⏳', tree: '🌳', golemgate: '🗿' };
+const FI = { zombie: '🧟', beast: '👹', alien: '👽', cybot: '🤖' };
+const CGI = { 'Roll': '🎲', 'Nâng sao': '⭐', 'Buff': '💪', 'Kinh tế': '🌾', 'Đánh cược': '🎰', 'Ngọc': '💠' };
+const TSI = { eng: '🌧️', jpn: '✴️', vik: '🪓', fra: '🔔', maya: '🩸', ara: '🌪️', rom: '🎯', byz: '🔥', kor: '🎆', ger: '🛡️', esp: '🐎', ott: '💣', egy: '☀️', chn: '🐲', vn: '🏹' };
+const PANEL_I = { shop: ['🎲', 'R', 'Tướng'], smith: ['⚒️', 'S', 'Thợ rèn & vũ khí'], stats: ['📊', 'C', 'Bảng chỉ số'], build: ['🔨', 'B', 'Xây dựng'], info: ['📜', 'I', 'Thông tin'], map: ['🗺️', 'M', 'Bản đồ'] };
+// Phong cách giao diện theo nền văn minh: [họ theme, hoa văn tiêu đề]
+const THEMES = { eng: ['europe', '⚜'], fra: ['europe', '⚜'], ger: ['europe', '✠'], esp: ['europe', '⚜'], rom: ['rome', '🏛'], byz: ['rome', '☩'], vik: ['viking', 'ᛟ'], jpn: ['asia', '⛩'], chn: ['asia', '☯'], kor: ['asia', '☯'], vn: ['vn', '🪷'], ara: ['desert', '✷'], ott: ['desert', '✷'], egy: ['desert', '☀'], maya: ['maya', '◈'] };
+function applyTheme(id) {
+  const w = $('wrap');
+  if (!id || !THEMES[id]) { delete w.dataset.theme; for (const k of ['--orn', '--civ']) w.style.removeProperty(k); return; }
+  w.dataset.theme = THEMES[id][0]; w.style.setProperty('--orn', `"${THEMES[id][1]}"`); w.style.setProperty('--civ', '#' + CIV[id].color.toString(16).padStart(6, '0'));
+}
+const shortName = n => n.split(' ').slice(-2).join(' ');
 const UI = { panel: null, arg: null, tab: 'thanh', dirty: true, t: 0, slow: 0, setup: {}, suggest: false };
 toast = (msg) => { const d = document.createElement('div'); d.className = 'toast'; d.textContent = msg; $('toasts').appendChild(d); setTimeout(() => d.classList.add('out'), 2600); setTimeout(() => d.remove(), 3100); while ($('toasts').children.length > 5) $('toasts').firstChild.remove(); };
 const dayOnly = () => { if (G.phase !== 'day' && G.phase !== 'dawn') { toast('Chỉ dùng được ban ngày'); return false; } return true; };
@@ -2002,12 +2052,12 @@ addEventListener('resize', fitWrap);
 
 // ---------- Menu / thiết lập trận ----------
 UI.showTitle = () => {
-  $('hud').classList.add('hide'); closePanel();
+  $('hud').classList.add('hide'); closePanel(); applyTheme(null); Tut.hide();
   const p = profile(), auto = loadGame('auto');
   menu(`<h1>THÀNH TRÌ VĂN MINH</h1><div class="sub">Civilization Defense — bản test 5 wave đầu · ${CONFIG.VERSION}</div>
-  <div class="mbtns"><button class="big" data-act="mNew">⚔️ Trận mới</button>
-  ${auto ? `<button class="big" data-act="mLoad" data-arg="auto">▶ Tiếp tục (wave ${auto.wave} · ${CIV[auto.civ].name})</button>` : ''}
-  <button data-act="mSlots">📂 Tải game</button><button data-act="mHelp">❓ Hướng dẫn</button></div>
+  <div class="mbtns"><button class="big ${p.tutDone ? '' : 'blink'}" data-act="mTut">🎓 Chơi hướng dẫn</button><button class="big" data-act="mNew">⚔️ Trận mới</button>
+  ${auto ? `<button class="big" data-act="mLoad" data-arg="auto">▶ Tiếp tục (🌊${auto.wave} · ${CIV[auto.civ].name})</button>` : ''}
+  <button data-act="mSlots">📂 Tải game</button><button data-act="mHelp">📖 Luật chơi</button></div>
   <div class="prof">Danh Vọng: <b>${p.fame}</b> · Văn minh đã chơi: ${p.played.length}/15 · Số trận: ${p.runs}</div>`);
 };
 function menu(html) { $('menu').innerHTML = `<div class="mbox">${html}</div>`; $('menu').classList.remove('hide'); }
@@ -2024,7 +2074,7 @@ A.mSlots = () => { let h = '<h2>Tải game</h2><div class="slots">'; for (const 
 A.mLoad = s => { const d = loadGame(s); if (!d) return toast('Slot trống'); if (['vhard', 'nightmare'].includes(d.diff) && s !== 'auto' && G && G.phase === 'night') return toast('Ironman: không tải giữa đêm'); G = d; recalc(); hideMenu(); startGameScene(); };
 A.mNew = () => { UI.setup = { diff: 'normal', mut: {} }; setupDiff(); };
 function setupDiff() {
-  const p = profile(), st = UI.setup;
+  const p = profile(), st = UI.setup; applyTheme(null);
   menu(`<h2>1. Chọn độ khó</h2><div class="diffs">${DIFFS.map(d => { const lock = d.locked && !p.vhardWin; return `<div class="dcard ${st.diff === d.id ? 'on' : ''} ${lock ? 'lock' : ''}" data-act="${lock ? '' : 'sDiff'}" data-arg="${d.id}"><b>${d.name}${lock ? ' 🔒' : ''}</b><span>${d.desc}</span></div>`; }).join('')}</div>
   <h3>Mutator (tuỳ chọn)</h3><div class="muts">${MUTATORS.map(m => `<label class="mut ${st.mut[m.id] ? 'on' : ''}" data-act="sMut" data-arg="${m.id}">${st.mut[m.id] ? '☑' : '☐'} <b>${m.name}</b> — ${m.desc}</label>`).join('')}</div>
   <div class="mbtns"><button data-act="mBack">◀</button><button class="big" data-act="sCiv">Tiếp: Bốc văn minh ▶</button></div>`);
@@ -2049,14 +2099,15 @@ function setupCiv() {
   const st = UI.setup, D = DIFFS.find(d => d.id === st.diff), played = profile().played; st.locked = D.civ === 'random';
   const list = st.showAll && !st.locked ? CIVS.map(c => c.id) : st.draft;
   const unp = CIVS.filter(c => !played.includes(c.id)).length, nPool = unp >= 5 ? unp : CIVS.length;
-  menu(`<h2>2. Chọn nền văn minh</h2>${st.locked ? '<p class="warn">Độ khó này: văn minh random</p>' : st.showAll ? '<p>Chế độ test: chọn tự do 1 trong cả 15 nền văn minh (✔ = đã chơi).</p>' : `<p>Bốc ngẫu nhiên 5 trong ${nPool} nền chưa chơi (mỗi nền ~${Math.round(500 / nPool)}% cơ hội có mặt). Nền đã chơi bị loại cho đến khi chơi hết 15.</p>`}
+  applyTheme(st.civ);
+  menu(`<h2>${st.tut ? '🎓 Hướng dẫn — chọn nền văn minh bạn thích' : '2. Chọn nền văn minh'}</h2>${st.tut ? '<p>Giao diện sẽ đổi theo phong cách nền văn minh bạn chọn. Hướng dẫn chơi ở độ khó Thường.</p>' : st.locked ? '<p class="warn">Độ khó này: văn minh random</p>' : st.showAll ? '<p>Chế độ test: chọn tự do 1 trong cả 15 nền văn minh (✔ = đã chơi).</p>' : `<p>Bốc ngẫu nhiên 5 trong ${nPool} nền chưa chơi (mỗi nền ~${Math.round(500 / nPool)}% cơ hội có mặt). Nền đã chơi bị loại cho đến khi chơi hết 15.</p>`}
   <div class="civs ${st.showAll && !st.locked ? 'all' : ''}">${list.map(id => civCard(CIV[id], st.civ === id, played.includes(id))).join('')}</div>
-  <div class="mbtns"><button data-act="mNew">◀</button>${st.locked ? '' : `<button data-act="sReroll">🎲 Bốc lại 5</button><button data-act="sAll">${st.showAll ? '🎴 Về 5 lá bốc' : '📜 Xem cả 15 nền (test)'}</button>`}<button class="big" data-act="sZone" ${st.civ ? '' : 'disabled'}>Tiếp: Chọn khu ▶</button></div>`);
+  <div class="mbtns"><button data-act="${st.tut ? 'mBack' : 'mNew'}">◀</button>${st.locked || st.tut ? '' : `<button data-act="sReroll">🎲 Bốc lại 5</button><button data-act="sAll">${st.showAll ? '🎴 Về 5 lá bốc' : '📜 Xem cả 15 nền (test)'}</button>`}<button class="big" data-act="sZone" ${st.civ ? '' : 'disabled'}>${st.tut ? '⚔️ Vào trận ▶' : 'Tiếp: Chọn khu ▶'}</button></div>`);
 }
 A.sReroll = () => { const st = UI.setup; st.showAll = false; A.sCiv(); };
 A.sAll = () => { UI.setup.showAll = !UI.setup.showAll; setupCiv(); };
 A.sPickCiv = id => { UI.setup.civ = id; setupCiv(); };
-A.sZone = () => { const st = UI.setup, D = DIFFS.find(d => d.id === st.diff); st.zone = D.pos === 'random' ? pick(RING) : (st.zone ?? null); setupZone(); };
+A.sZone = () => { const st = UI.setup, D = DIFFS.find(d => d.id === st.diff); if (st.tut) { st.zone = 7; return A.sStart(); } st.zone = D.pos === 'random' ? pick(RING) : (st.zone ?? null); setupZone(); };
 function zoneGrid(sel, act, ours) { return `<div class="zgrid">${ZONES.map((z, i) => z.boss ? `<div class="zc boss">💀<br><b>Thành Boss</b><small>Cần 3 Ngọc Thiên Thạch</small></div>` : `<div class="zc ${sel === i ? 'on' : ''} ${ours === i ? 'ours' : ''}" data-act="${act || ''}" data-arg="${i}" style="background:linear-gradient(#000b,#0006),#${z.g1.toString(16).padStart(6, '0')}"><b>${z.dir}: ${z.name}</b><small>${Object.entries(z.res).filter(([, v]) => v >= 1.5).map(([r]) => RES[r].i).join(' ')} ${z.desc}</small></div>`).join('')}</div>`; }
 function setupZone() {
   const st = UI.setup, D = DIFFS.find(d => d.id === st.diff);
@@ -2065,11 +2116,11 @@ function setupZone() {
   <div class="mbtns"><button data-act="sCiv">◀</button><button class="big" data-act="sStart" ${st.zone != null ? '' : 'disabled'}>⚔️ Vào trận</button></div>`);
 }
 A.sPickZone = i => { UI.setup.zone = +i; setupZone(); };
-A.sStart = () => { const st = UI.setup; newGame({ diff: st.diff, mut: st.mut, civ: st.civ, zone: st.zone }); hideMenu(); startGameScene(); };
+A.sStart = () => { const st = UI.setup; newGame({ diff: st.diff, mut: st.mut, civ: st.civ, zone: st.zone, tut: st.tut }); hideMenu(); startGameScene(); };
 function startGameScene() { const sc = game.scene; if (sc.isActive('Title')) sc.stop('Title'); if (sc.isActive('Game')) sc.stop('Game'); sc.start('Game'); }
 
 // ---------- HUD ----------
-UI.showHUD = () => { $('hud').classList.remove('hide'); hideMenu(); UI.dirty = true; };
+UI.showHUD = () => { $('hud').classList.remove('hide'); hideMenu(); applyTheme(G.civ); Tut.drawn = -1; UI.dirty = true; };
 UI.onPhase = p => { UI.dirty = true; if (p === 'night' && UI.panel && ['shop', 'smith', 'build', 'stats'].includes(UI.panel)) closePanel(); };
 UI.refresh = force => { UI.dirty = true; if (force) render(); };
 UI.openShopAuto = () => { if (!UI.panel || UI.panel === 'cards') { openPanel('shop'); } };
@@ -2077,16 +2128,19 @@ UI.closeDayPanels = () => { if (['shop', 'smith', 'stats'].includes(UI.panel)) c
 UI.tick = delta => {
   UI.t += delta; UI.slow += delta;
   if (UI.t > 120) { UI.t = 0; renderFast(); }
+  Tut.update();
   if (UI.dirty) { UI.slow = 0; render(); }
   else if (UI.slow > 400) { UI.slow = 0; const sg = hudSig(); if (sg !== UI.sig) render(); }
 };
 function renderFast() {
   if (!G) return;
-  const ph = G.phase; $('phName').textContent = PHASE_N[ph] || ph;
-  const t = Math.max(0, R.phaseT || 0); $('phTime').textContent = ph === 'place' ? '' : ph === 'dawn' && R.waitCard ? 'chọn thẻ' : Math.ceil(t) + 's';
+  const ph = G.phase;
+  $('phName').dataset.tip = (PHASE_N[ph] || ph).replace(/^\S+ /, '');
+  $('phName').textContent = (PHASE_N[ph] || ph).split(' ')[0];
+  const t = Math.max(0, R.phaseT || 0); $('phTime').textContent = ph === 'place' ? '' : ph === 'dawn' && R.waitCard ? '🃏' : Tut.holds() ? '⏸' : Math.ceil(t) + 's';
   $('phBar').style.width = (R.phaseMax ? (1 - t / R.phaseMax) * 100 : 0) + '%';
   $('phBar').className = ph;
-  if (R.tower) { const ti = World.towerInfo(); $('towerHp').style.width = clamp(ti.hp / ti.max, 0, 1) * 100 + '%'; $('towerSh').style.width = clamp(ti.shield / ti.max, 0, 1) * 100 + '%'; $('towerLbl').textContent = `🏛️ ${civ().tower} · ${CONFIG.AGES[G.tower.age].name}${G.tower.building ? ' (đang xây ▲)' : ''} — ${Math.ceil(ti.hp)}/${ti.max}${ti.shield > 0 ? ` +🛡${Math.ceil(ti.shield)}` : ''} · Giáp ${Math.round(ti.arm)}`; }
+  if (R.tower) { const ti = World.towerInfo(); $('towerHp').style.width = clamp(ti.hp / ti.max, 0, 1) * 100 + '%'; $('towerSh').style.width = clamp(ti.shield / ti.max, 0, 1) * 100 + '%'; $('towerLbl').textContent = `🏛️ ${CONFIG.AGES[G.tower.age].name}${G.tower.building ? ' 🏗️' : ''}  ❤ ${Math.ceil(ti.hp)}/${ti.max}${ti.shield > 0 ? ` 🔰${Math.ceil(ti.shield)}` : ''}  🛡 ${Math.round(ti.arm)}`; }
   // chân dung tướng: máu & hồi chiêu
   for (const h of fieldHeroes()) {
     const rt = World.heroRT(h.uid); const el = document.querySelector(`.port[data-uid="${h.uid}"]`); if (!rt || !el) continue;
@@ -2099,56 +2153,57 @@ function renderFast() {
   // tài nguyên
   for (const k of ['gold', 'dia', 'core', ...RES_KEYS]) { const e = $('r_' + k); if (e) e.textContent = fmt(G.res[k]); }
   for (const k of RES_KEYS) { const e = $('rr_' + k); if (e) e.textContent = R.rates && R.rates[k] ? '+' + Math.round(R.rates[k]) + '/ph' : ''; }
-  if (G.phase === 'night' && R.plan) $('forecast').innerHTML = `👾 ${FACTIONS[R.plan.fac].n}: còn <b>${alive().length + (R.plan.q.length - R.spawnIdx)}</b> · ${WEATHERS.find(w => w.id === R.weather).i}`;
+  if (G.phase === 'night' && R.plan) { const we = WEATHERS.find(w => w.id === R.weather); $('forecast').innerHTML = `<span data-tip="${esc(FACTIONS[R.plan.fac].n)} — quái còn lại">${FI[R.plan.fac]} 👾 <b>${alive().length + (R.plan.q.length - R.spawnIdx)}</b></span> <span data-tip="${esc(we.n)}">${we.i}</span>`; }
 }
 function hudSig() { if (!G) return ''; return JSON.stringify([G.phase, G.wave, G.lives, G.statPts, G.card, R.tool, G.freeTraps, G.riceDebt > 0, G.heroes.map(h => [h.uid, h.star, h.loc, h.eq.length, h.auto]), G.wslots.map(w => w && w.uid + ':' + w.star), G.wstore.map(w => w.uid + ':' + w.star), G.ground.length, G.tower.age, G.tower.building, R.sel, UI.panel, R.plan && R.plan.n, G.res.gold, G.res.dia, G.res.core, G.items.length, G.shop.slots.map(s => s.id + s.bought + s.locked), G.wshop.offers.length, CONFIG.SPEED]); }
 function render() {
   UI.dirty = false; if (!G) return; UI.sig = hudSig();
   // top
-  $('waveBox').innerHTML = `Wave <b>${G.wave}</b>/50 <small>(test ${Math.min(G.wave, 5)}/5)</small>`;
-  $('lives').innerHTML = Array.from({ length: CONFIG.LIVES }, (_, i) => `<span class="${i < G.lives ? '' : 'off'}">❤</span>`).join('');
+  $('waveBox').innerHTML = `🌊<b>${G.wave}</b><small>/${CONFIG.TEST_WAVES}</small>`; $('waveBox').dataset.tip = `Wave ${G.wave} (bản test: sống sót ${CONFIG.TEST_WAVES} wave)`;
+  $('lives').innerHTML = Array.from({ length: CONFIG.LIVES }, (_, i) => `<span class="${i < G.lives ? '' : 'off'}">❤</span>`).join(''); $('lives').dataset.tip = `Mạng: ${G.lives}/${CONFIG.LIVES}`;
   $('btnReady').style.display = ['day', 'dusk'].includes(G.phase) ? '' : 'none';
-  $('btnReady').textContent = G.phase === 'day' ? 'Sẵn sàng → Hoàng hôn' : 'Bắt đầu đêm ▶';
+  $('btnReady').textContent = G.phase === 'day' ? '🌇 ▶' : '🌙 ▶';
+  $('btnReady').dataset.tip = G.phase === 'day' ? 'Sẵn sàng → sang Hoàng hôn (Enter)' : 'Bắt đầu đêm (Enter)';
   const fac = FAC_ORDER[(G.wave - 1) % 4];
-  if (G.phase !== 'night') $('forecast').innerHTML = `Dự báo: <b style="color:${FACTIONS[fac].c}">${FACTIONS[fac].n}</b>${R.plan ? ` · ${R.plan.n} quái · ${R.plan.lanes.length} hướng` : ''}`;
+  if (G.phase !== 'night') $('forecast').innerHTML = `<span data-tip="Dự báo đêm nay: ${esc(FACTIONS[fac].n)}\nMạnh: ${esc(FACTIONS[fac].strong)}\nYếu: ${esc(FACTIONS[fac].weak)}">🔭 <b style="color:${FACTIONS[fac].c};font-size:16px">${FI[fac]}</b>${R.plan ? ` 👾<b>${R.plan.n}</b> ➶<b>${R.plan.lanes.length}</b>` : ''}</span>`;
   $('resBox').innerHTML = `<span data-tip="Vàng: roll tướng, mua XP shop">💰<b id="r_gold"></b></span><span data-tip="Kim cương: roll vũ khí phòng thủ">💎<b id="r_dia"></b></span><span data-tip="Lõi Năng Lượng: nâng vũ khí 3★">🔋<b id="r_core"></b></span>` +
     RES_KEYS.map(k => `<span class="res" data-tip="${RES[k].n} (tối đa ${CONFIG.CAP}, dư bán vàng ${M.ksGranary ? 5 : 10}:1)">${RES[k].i}<b id="r_${k}"></b><small id="rr_${k}"></small></span>`).join('') + (G.riceDebt > 0 ? `<span class="warn" data-tip="Thiếu lúa nuôi quân: toàn quân -20% ATK đến khi bù đủ">⚠️ nợ ${Math.ceil(G.riceDebt)}🌾</span>` : '');
   $('btnSpeed').textContent = 'x' + CONFIG.SPEED; $('btnMute').textContent = SFX.on ? '🔊' : '🔇';
-  $('cardChip').innerHTML = G.card ? `<span class="${CARD[G.card].gold ? 'gold' : ''}" data-tip="${esc(CARD[G.card].d)}">🃏 ${CARD[G.card].n}</span>` : '';
-  $('cardChip').innerHTML += R.tool ? `<span class="tool">🔧 ${TOOLS[R.tool].n}: ${TOOLS[R.tool].hint} <button data-act="tool" data-arg="${R.tool}">Thoát</button></span>` : '';
-  if (G.freeTraps > 0) $('cardChip').innerHTML += `<span>🎋 Bẫy miễn phí: ${G.freeTraps}</span>`;
+  $('cardChip').innerHTML = G.card ? `<span class="${CARD[G.card].gold ? 'gold' : ''}" data-tip="${esc(CARD[G.card].n + ': ' + CARD[G.card].d)}">${CGI[CARD[G.card].g] || '🃏'} ${CARD[G.card].n}</span>` : '';
+  $('cardChip').innerHTML += R.tool ? `<span class="tool">${TOOLS[R.tool].i} ${TOOLS[R.tool].n}: ${TOOLS[R.tool].hint} <button data-act="tool" data-arg="${R.tool}" data-tip="Thoát công cụ (Esc)">✕</button></span>` : '';
+  if (G.freeTraps > 0) $('cardChip').innerHTML += `<span data-tip="Bẫy chông miễn phí">🪤 ×${G.freeTraps}</span>`;
   if (G.phase === 'place') $('cardChip').innerHTML = '<span class="tool">📍 Click 1 ô vàng trên map để đặt Tòa Văn Minh</span>';
   // minimap
-  $('minimap').innerHTML = ZONES.map((z, i) => `<div class="mm ${i === G.zone ? 'ours' : ''} ${z.boss ? 'boss' : ''}" style="${z.boss ? '' : `background:#${z.g1.toString(16).padStart(6, '0')}`}" data-tip="${esc(z.dir + ': ' + z.name + ' — ' + z.desc)}">${z.boss ? '💀' : i === G.zone ? '🏰' : ''}</div>`).join('') + `<div class="mmi" data-act="panel" data-arg="map">Dời Đô sau ${10 - ((G.wave - 1) % 10)} ngày · M</div>`;
+  $('minimap').innerHTML = ZONES.map((z, i) => `<div class="mm ${i === G.zone ? 'ours' : ''} ${z.boss ? 'boss' : ''}" style="${z.boss ? '' : `background:#${z.g1.toString(16).padStart(6, '0')}`}" data-tip="${esc(z.dir + ': ' + z.name + ' — ' + z.desc)}">${z.boss ? '💀' : i === G.zone ? '🏰' : ''}</div>`).join('') + `<div class="mmi" data-act="panel" data-arg="map" data-tip="Bản đồ (M) — Dời Đô sau ${10 - ((G.wave - 1) % 10)} ngày">🗺️ ⏳${10 - ((G.wave - 1) % 10)}</div>`;
   // tướng ra trận
   const field = fieldHeroes(); let fr = '';
   for (let i = 0; i < 3; i++) {
     const h = field[i];
-    if (!h) { fr += `<div class="port empty" data-tip="Chọn tướng ở Hàng chờ → Đặt ra ngoài (ngày/hoàng hôn)">＋ Ô tướng ${i + 1}</div>`; continue; }
+    if (!h) { fr += `<div class="port empty" data-tip="Ô tướng ${i + 1}: bấm tướng ở Hàng chờ → 🚩 Đặt ra ngoài (ngày/hoàng hôn)">＋</div>`; continue; }
     const d = HERO[h.id];
     fr += `<div class="port" data-uid="${h.uid}" style="--g:${GROUPS[d.group].color};--r:${RARITY[d.rar].c}">
-      <div class="pt" data-act="hsel" data-arg="${h.uid}"><b>${i + 1}. ${esc(d.name)}</b><span class="st">${'★'.repeat(h.star)}</span></div>
+      <div class="pt" data-act="hsel" data-arg="${h.uid}" data-tip="${esc(d.name)} — ${GROUPS[d.group].name}, ${RARITY[d.rar].n} (phím ${i + 1})"><b>${GI[d.group]} ${esc(shortName(d.name))}</b><span class="st">${'★'.repeat(h.star)}</span></div>
       <div class="hpb"><i></i></div>
       <div class="eq">${[0, 1, 2].map(j => `<span data-tip="${h.eq[j] ? esc(itemName(h.eq[j])) : 'Ô trang bị trống'}">${h.eq[j] ? (ITEMS[h.eq[j]] ? ITEMS[h.eq[j]].i : '✨') : '·'}</span>`).join('')}<button class="mini" data-act="hdetail" data-arg="${h.uid}" data-tip="Chi tiết / trang bị">ⓘ</button></div>
-      <div class="sk"><button class="sq" data-act="hq" data-arg="${h.uid}" data-tip="Q: ${esc(d.q.n)} (8s, hồi 20s)">Q</button><button class="sw" data-act="hw" data-arg="${h.uid}" data-tip="W: ${esc(d.w.n)} (hồi ${d.w.cd}s)">W</button><button class="auto ${h.auto ? 'on' : ''}" data-act="hauto" data-arg="${h.uid}" data-tip="Auto skill: tự tung W khi ≥3 quái trong vùng">A</button></div></div>`;
+      <div class="sk"><button class="sq" data-act="hq" data-arg="${h.uid}" data-tip="Q: ${esc(d.q.n)} (8s, hồi 20s)">📯<kbd>Q</kbd></button><button class="sw" data-act="hw" data-arg="${h.uid}" data-tip="W: ${esc(d.w.n)} (hồi ${d.w.cd}s)">💥<kbd>W</kbd></button><button class="auto ${h.auto ? 'on' : ''}" data-act="hauto" data-arg="${h.uid}" data-tip="Tự động: tung W khi ≥3 quái trong vùng (${h.auto ? 'BẬT' : 'TẮT'})">🔁</button></div></div>`;
   }
   const ts = civ().ts, gar = G.heroes.find(h => h.loc === 'garrison');
-  fr += `<button id="fBtn" class="fbtn" data-act="f" data-tip="F: ${esc(ts.name)} (hồi ${ts.cd}s) — skill Tòa Văn Minh">F<br><small>${esc(ts.name)}</small></button>`;
-  fr += `<div class="gar" data-act="${gar ? 'hdetail' : ''}" data-arg="${gar ? gar.uid : ''}" data-tip="Trấn thủ: tướng trong tòa cho 10% chỉ số vào tòa">🏯 ${gar ? esc(HERO[gar.id].name) + ' ' + '★'.repeat(gar.star) : 'Trấn thủ: trống'}</div>`;
+  fr += `<button id="fBtn" class="fbtn" data-act="f" data-tip="F: ${esc(ts.name)} (hồi ${ts.cd}s) — tuyệt kỹ Tòa Văn Minh">${TSI[G.civ] || '🏛️'}<kbd>F</kbd></button>`;
+  fr += `<div class="gar" data-act="${gar ? 'hdetail' : ''}" data-arg="${gar ? gar.uid : ''}" data-tip="${gar ? esc(HERO[gar.id].name) + ' đang trấn thủ' : 'Trấn thủ: trống'} — tướng trong tòa cho 10% chỉ số vào tòa">🏯<small>${gar ? GI[HERO[gar.id].group] + '★'.repeat(gar.star) : '＋'}</small></div>`;
   $('fieldRow').innerHTML = fr;
   // hàng chờ
   const bench = G.heroes.filter(h => h.loc === 'bench'); let bh = '';
-  for (let i = 0; i < CONFIG.BENCH; i++) { const h = bench[i]; bh += h ? `<div class="bch" data-act="hdetail" data-arg="${h.uid}" style="--g:${GROUPS[HERO[h.id].group].color};--r:${RARITY[HERO[h.id].rar].c}" data-tip="${esc(HERO[h.id].name)} — ${GROUPS[HERO[h.id].group].name}, ${RARITY[HERO[h.id].rar].n}"><b>${esc(HERO[h.id].name.split(' ').slice(-2).join(' '))}</b><span>${'★'.repeat(h.star)}</span></div>` : `<div class="bch empty">Hàng chờ</div>`; }
+  for (let i = 0; i < CONFIG.BENCH; i++) { const h = bench[i]; bh += h ? `<div class="bch" data-act="hdetail" data-arg="${h.uid}" style="--g:${GROUPS[HERO[h.id].group].color};--r:${RARITY[HERO[h.id].rar].c}" data-tip="${esc(HERO[h.id].name)} — ${GROUPS[HERO[h.id].group].name}, ${RARITY[HERO[h.id].rar].n}"><i class="gi">${GI[HERO[h.id].group]}</i><b>${esc(HERO[h.id].name.split(' ').slice(-1)[0])}</b><span>${'★'.repeat(h.star)}</span></div>` : `<div class="bch empty" data-tip="Hàng chờ trống">·</div>`; }
   $('bench').innerHTML = bh;
   // vũ khí
   const nW = CONFIG.AGES[G.tower.age].wslots;
-  $('wslots').innerHTML = G.wslots.map((w, i) => i >= nW ? `<div class="ws lock" data-tip="Mở ở thời đại cao hơn">🔒</div>` : w ? weaponChip(w) : `<div class="ws" data-tip="Ô vũ khí trên tòa">+</div>`).join('');
-  $('wstore').innerHTML = '<small>Kho:</small>' + [0, 1, 2, 3].map(i => G.wstore[i] ? weaponChip(G.wstore[i]) : '<div class="ws st"></div>').join('');
-  $('btnRow').innerHTML = [['shop', 'R', 'Tướng'], ['smith', 'S', 'Thợ Rèn'], ['stats', 'C', 'Chỉ số' + (G.statPts ? ` <i class="badge">${G.statPts}</i>` : '')], ['build', 'B', 'Xây'], ['info', 'I', 'Thông tin'], ['map', 'M', 'Bản đồ']].map(([p, k, n]) => `<button data-act="panel" data-arg="${p}" class="${UI.panel === p ? 'on' : ''} ${p === 'stats' && G.statPts ? 'blink' : ''}"><kbd>${k}</kbd> ${n}</button>`).join('');
+  $('wslots').innerHTML = G.wslots.map((w, i) => i >= nW ? `<div class="ws lock" data-tip="Mở ở thời đại cao hơn">🔒</div>` : w ? weaponChip(w) : `<div class="ws" data-tip="Ô vũ khí trên tòa — mua ở ⚒️ (S)">+</div>`).join('');
+  $('wstore').innerHTML = '<small data-tip="Kho vũ khí (chưa gắn)">📦</small>' + [0, 1, 2, 3].map(i => G.wstore[i] ? weaponChip(G.wstore[i], 1) : '<div class="ws st"></div>').join('');
+  $('btnRow').innerHTML = Object.entries(PANEL_I).map(([p, [ic, k, n]]) => `<button data-act="panel" data-arg="${p}" class="${UI.panel === p ? 'on' : ''} ${p === 'stats' && G.statPts ? 'blink' : ''}" data-tip="${n} (${k})">${ic}<kbd>${k}</kbd>${p === 'stats' && G.statPts ? `<i class="badge">${G.statPts}</i>` : ''}</button>`).join('');
   if (UI.panel) renderPanel();
   renderFast();
 }
-function weaponChip(w) { const d = WEAPON[w.id]; return `<div class="ws has" data-act="wmount" data-arg="${w.uid}" style="--r:${RARITY[d.rar].c}" data-tip="${esc(`${d.n} ${'★'.repeat(w.star)} (${RARITY[d.rar].n}, ${WTYPES[d.t]})\n1★: ${d.d1}\n3★: ${d.d3}\nClick: gắn/tháo`)}"><b>${esc(d.n.split(' ').map(x => x[0]).join(''))}</b><span>${'★'.repeat(w.star)}</span></div>`; }
+function weaponChip(w, small) { const d = WEAPON[w.id]; return `<div class="ws has ${small ? 'st' : ''}" data-act="wmount" data-arg="${w.uid}" style="--r:${RARITY[d.rar].c}" data-tip="${esc(`${d.n} ${'★'.repeat(w.star)} (${RARITY[d.rar].n}, ${WTYPES[d.t]})\n1★: ${d.d1}\n3★: ${d.d3}\nClick: gắn/tháo`)}"><b>${WI[w.id] || '⚙️'}</b><span>${'★'.repeat(w.star)}</span></div>`; }
 
 // ---------- Bảng ----------
 function openPanel(name, arg) { UI.panel = name; UI.arg = arg; $('panel').classList.remove('hide'); renderPanel(); render(); }
@@ -2160,15 +2215,15 @@ function renderPanel() {
   $('panel').className = 'p-' + UI.panel;
 }
 const TOOLS = {
-  extr: { n: 'Máy khai thác', hint: 'click mỏ để đặt/nâng cấp (cấp 1–3)', c: CONFIG.EXTR[1].cost },
-  belt: { n: 'Băng chuyền', hint: 'kéo từ máy khai thác về ô viền xanh sát thành (1 gỗ/ô)', c: { wood: 1 } },
-  beltUp: { n: 'Nâng băng', hint: 'click băng chuyền: Gỗ → Đá (x1.5) → Sắt (x2)' },
-  mill: { n: 'Cối xay', hint: 'đặt trên băng chở lúa: x1.5 giá trị', c: CONFIG.PROC.mill.cost },
-  forge: { n: 'Lò rèn', hint: 'đặt trên băng chở sắt → thép x1.5', c: CONFIG.PROC.forge.cost },
-  trap: { n: 'Bẫy chông', hint: 'click lên đường quái đi (3 lần kích hoạt)', c: CONFIG.TRAP.cost },
-  sub: { n: 'Tháp phụ', hint: 'đặt trong 8 ô quanh thành (mở ở Cổ đại)', c: CONFIG.SUB.cost },
-  repair: { n: 'Sửa băng', hint: 'click ô bị phá (X đỏ), 2 gỗ/ô' },
-  del: { n: 'Gỡ bỏ', hint: 'click để gỡ (hoàn 50%) — chuột phải cũng gỡ' },
+  extr: { i: '⛏️', n: 'Máy khai thác', hint: 'click mỏ để đặt/nâng cấp (cấp 1–3)', c: CONFIG.EXTR[1].cost },
+  belt: { i: '🛤️', n: 'Băng chuyền', hint: 'giữ chuột kéo từ máy khai thác về ô viền xanh sát thành (1 gỗ/ô)', c: { wood: 1 } },
+  beltUp: { i: '⏫', n: 'Nâng băng', hint: 'click băng chuyền: Gỗ → Đá (x1.5) → Sắt (x2)' },
+  mill: { i: '🌀', n: 'Cối xay', hint: 'đặt trên băng chở lúa: x1.5 giá trị', c: CONFIG.PROC.mill.cost },
+  forge: { i: '🔥', n: 'Lò rèn', hint: 'đặt trên băng chở sắt → thép x1.5', c: CONFIG.PROC.forge.cost },
+  trap: { i: '🪤', n: 'Bẫy chông', hint: 'click lên đường quái đi (3 lần kích hoạt)', c: CONFIG.TRAP.cost },
+  sub: { i: '🗼', n: 'Tháp phụ', hint: 'đặt trong 8 ô quanh thành (mở ở Cổ đại)', c: CONFIG.SUB.cost },
+  repair: { i: '🔧', n: 'Sửa băng', hint: 'click ô bị phá (X đỏ), 2 gỗ/ô' },
+  del: { i: '🗑️', n: 'Gỡ bỏ', hint: 'click để gỡ (hoàn 50%) — chuột phải cũng gỡ' },
 };
 const PANELS = {
   shop() {
@@ -2179,7 +2234,7 @@ const PANELS = {
       const d = HERO[sl.id], own = G.heroes.filter(x => x.id === sl.id).length;
       h += blind ? `<div class="hc" style="--r:#555"><b>❓ Tướng Mù</b><small>Không thấy trước</small><button data-act="buy" data-arg="${i}">Mua ${d.cost}💰</button></div>` :
         `<div class="hc" style="--g:${GROUPS[d.group].color};--r:${RARITY[d.rar].c}"><div class="lk ${sl.locked ? 'on' : ''}" data-act="lock" data-arg="${i}" data-tip="Khóa ô: giữ tướng sang ngày sau (miễn phí)">${sl.locked ? '🔒' : '🔓'}</div>
-        <b>${esc(d.name)}</b><span class="tag" style="background:${GROUPS[d.group].color}">${GROUPS[d.group].name}</span> <small style="color:${RARITY[d.rar].c}">${RARITY[d.rar].n}</small>
+        <b>${GI[d.group]} ${esc(d.name)}</b><span class="tag" style="background:${GROUPS[d.group].color}">${GROUPS[d.group].name}</span> <small style="color:${RARITY[d.rar].c}">${RARITY[d.rar].n}</small>
         <small>❤${d.hp} ⚔${d.atk} ${d.rng > 80 ? '🏹 xa' : '🗡 cận'}</small><small class="sk">Q: ${esc(d.q.n)}<br>W: ${esc(d.w.n)}</small>${d.pd ? `<small class="pas">${esc(d.pd)}</small>` : ''}
         ${own ? `<small class="own">Đang có ${own} — mua thêm để ghép sao</small>` : ''}<button data-act="buy" data-arg="${i}">Mua ${d.cost} 💰</button></div>`;
     });
@@ -2191,9 +2246,9 @@ const PANELS = {
   smith() {
     const wc = wRollCost();
     let h = `<div class="row"><b>Roll vũ khí</b> (${wc} 💎/lượt, chọn 1/3) · Tỉ lệ thời đại ${CONFIG.AGES[G.tower.age].name}: ${W_ODDS[G.tower.age].map((o, i) => `<span style="color:${RARITY[i].c}">${o}%</span>`).join(' / ')} <button class="big" data-act="wroll">💎 Roll (${wc})</button>${G.wshop.offers.length ? `<button data-act="wlock">${G.wshop.locked ? '🔒 Đã khóa' : '🔓 Khóa shop'}</button>` : ''} · 💎 ${G.res.dia} · 🔋 ${G.res.core}</div><div class="shop">`;
-    h += G.wshop.offers.length ? G.wshop.offers.map((o, i) => { const d = WEAPON[o.id]; return `<div class="hc" style="--r:${RARITY[d.rar].c}"><b>${d.n}</b><small style="color:${RARITY[d.rar].c}">${RARITY[d.rar].n} · ${WTYPES[d.t]}</small><small>1★: ${d.d1}</small><small>3★: ${d.d3}</small><button data-act="wtake" data-arg="${i}">Lấy</button></div>`; }).join('') : '<p class="note">Chưa roll.</p>';
-    h += `</div><h3>⚒️ Thợ Rèn — mua đích danh (vàng + sắt)</h3><div class="smith">${WEAPONS.filter(w => w.rar <= 1).map(w => { const p = smithPrice(w.id); return `<div class="sm" data-tip="${esc(`${w.d1} · 3★: ${w.d3}`)}"><span style="color:${RARITY[w.rar].c}">${w.n}</span> <small>${WTYPES[w.t]}</small><button data-act="smith" data-arg="${w.id}">${p.gold}💰 ${p.iron}⛓️</button></div>`; }).join('')}</div>
-      <h3>Vũ khí của bạn</h3><div class="wl">${allWeapons().map(w => { const d = WEAPON[w.id], on = G.wslots.includes(w); return `<div class="sm" style="--r:${RARITY[d.rar].c}"><b>${d.n} ${'★'.repeat(w.star)}</b> <small>${on ? 'đang gắn' : 'trong kho'}</small> <button data-act="wmount" data-arg="${w.uid}">${on ? 'Tháo' : 'Gắn'}</button><button data-act="wsell" data-arg="${w.uid}">Bán (70%)</button></div>`; }).join('') || '<p class="note">Chưa có vũ khí</p>'}</div>
+    h += G.wshop.offers.length ? G.wshop.offers.map((o, i) => { const d = WEAPON[o.id]; return `<div class="hc" style="--r:${RARITY[d.rar].c}"><b><span style="font-size:22px">${WI[o.id]}</span> ${d.n}</b><small style="color:${RARITY[d.rar].c}">${RARITY[d.rar].n} · ${WTYPES[d.t]}</small><small>1★: ${d.d1}</small><small>3★: ${d.d3}</small><button data-act="wtake" data-arg="${i}">Lấy</button></div>`; }).join('') : '<p class="note">Chưa roll.</p>';
+    h += `</div><h3>⚒️ Thợ Rèn — mua đích danh (vàng + sắt)</h3><div class="smith">${WEAPONS.filter(w => w.rar <= 1).map(w => { const p = smithPrice(w.id); return `<div class="sm" data-tip="${esc(`${w.d1} · 3★: ${w.d3}`)}"><span style="color:${RARITY[w.rar].c}">${WI[w.id]} ${w.n}</span> <small>${WTYPES[w.t]}</small><button data-act="smith" data-arg="${w.id}">${p.gold}💰 ${p.iron}⛓️</button></div>`; }).join('')}</div>
+      <h3>Vũ khí của bạn</h3><div class="wl">${allWeapons().map(w => { const d = WEAPON[w.id], on = G.wslots.includes(w); return `<div class="sm" style="--r:${RARITY[d.rar].c}"><b>${WI[w.id]} ${d.n} ${'★'.repeat(w.star)}</b> <small>${on ? 'đang gắn' : 'trong kho'}</small> <button data-act="wmount" data-arg="${w.uid}">${on ? 'Tháo' : 'Gắn'}</button><button data-act="wsell" data-arg="${w.uid}">Bán (70%)</button></div>`; }).join('') || '<p class="note">Chưa có vũ khí</p>'}</div>
       ${G.ground.length ? `<h3>Trên đất (nhặt trong 1 ngày)</h3>${G.ground.map((w, i) => `<button data-act="pickup" data-arg="${i}">${WEAPON[w.id].n} — Nhặt</button>`).join('')}` : ''}
       <p class="note">Ghép: 2 vũ khí 1★ cùng loại → 2★; 2★+2★ → 3★ (cần Lõi: Thường/Hiếm 1, Sử thi/Huyền thoại 2). Cộng hưởng: 2 vũ khí cùng loại → Công +5% ATK · Phép -5% hồi chiêu · Thủ +5% HP tòa · Kinh tế +5% sản lượng · Khống chế/Tiện ích +10% thời gian hiệu ứng; 3 vũ khí gấp đôi. Đang kích hoạt: ${Object.entries(M.wsets || {}).filter(([, n]) => n >= 2).map(([t, n]) => `${WTYPES[t]} x${n}`).join(', ') || 'không'}</p>`;
     return ['⚒️ Thợ Rèn & Vũ khí phòng thủ (S)', h];
@@ -2223,8 +2278,8 @@ const PANELS = {
   },
   build() {
     const age = G.tower.age, nx = CONFIG.AGES[age + 1];
-    let h = `<div class="tools">${Object.entries(TOOLS).map(([k, t]) => `<button class="${R.tool === k ? 'on' : ''}" data-act="tool" data-arg="${k}" data-tip="${esc(t.hint)}"><b>${t.n}</b><small>${t.c ? costStr(t.c) : ''}</small></button>`).join('')}</div>
-      <p class="note">Băng chuyền (Factorio thu nhỏ): 1) đặt Máy Khai Thác lên mỏ → 2) kéo băng (giữ chuột trái) từ mỏ về ô viền xanh sát thành = Kho → 3) băng dài thì chậm, nâng Gỗ→Đá→Sắt → 4) Cối xay/Lò rèn giữa đường x1.5. Ban đêm băng ngừng chạy, quái có thể phá băng ngoài tường. Kho tối đa ${CONFIG.CAP}/loại, dư bán vàng 10:1.</p>
+    let h = `<div class="tools">${Object.entries(TOOLS).map(([k, t]) => `<button class="${R.tool === k ? 'on' : ''}" data-act="tool" data-arg="${k}" data-tip="${esc(t.n + ': ' + t.hint)}"><b>${t.i}</b><small>${t.c ? costStr(t.c) : t.n}</small></button>`).join('')}</div>
+      <p class="note">⛏️ Máy lên mỏ → 🛤️ kéo băng về viền xanh quanh thành → ⏫ băng Đá/Sắt chạy nhanh hơn → 🌀/🔥 đặt giữa băng x1.5. Ban đêm băng ngừng; quái có thể phá băng. Kho tối đa ${CONFIG.CAP}/loại.</p>
       <h3>🏛️ Tòa Văn Minh</h3><div class="row">Thời đại: <b>${CONFIG.AGES[age].name}</b> (${CONFIG.AGES[age].floors} tầng, ${soldierCap()} lính, ${CONFIG.AGES[age].wslots} ô vũ khí, ${CONFIG.AGES[age].subs} tháp phụ)
       ${G.tower.building ? `<b class="warn">Đang xây ${CONFIG.AGES[G.tower.building].name} — xong lúc bình minh</b>` : nx ? `<button class="big" data-act="age">▲ Lên ${nx.name}: ${costStr(nx.cost)} (mất 1 ngày xây)</button>` : '<b>Tối đa</b>'}</div>
       <div class="row">Tường cấp <b>${G.wall}</b>/3 (≤ thời đại): +15% HP, +4 giáp mỗi cấp ${G.wall < Math.min(3, age) ? `<button data-act="wall">Nâng: ${costStr(CONFIG.WALL_COST(G.wall + 1))}</button>` : ''}</div>
@@ -2284,16 +2339,16 @@ const PANELS = {
       <p class="note">Tự lưu đầu mỗi ban ngày. ${['vhard', 'nightmare'].includes(G.diff) ? 'Ironman: chỉ 1 slot tự lưu, không tải lại giữa đêm.' : ''}</p><button data-act="quit">🏠 Về menu chính</button></div>${helpHTML()}`];
   },
 };
-const ABBR = { atk: 'ATK', aspd: 'TĐ', crit: 'CM', splash: 'Lan', range: 'Tầm', skillR: 'PV', pen: 'XG', critD: 'SCM', multi: 'Đa', elite: 'Eli', boss: 'Bos', ksSteel: '⚙', ksExec: '☠', spell: 'Phép', cdrH: 'HCt', castH: 'Cst', sumHp: 'THp', tEnergy: 'NL', castT: 'CsT', cdrT: 'HCT', sumCap: 'Cap', cc: 'KC', sumAtk: 'TAt', mresRed: 'KP-', sumDur: 'TGt', ksTwice: '⚡', ksArmy: '⚑', thp: 'HP', armor: 'Giáp', harv: 'SL', harvT: 'TGh', regen: 'Hồi', reflect: 'Phản', beltSpd: 'Băng', rollDisc: 'Roll', trap: 'Bẫy', sArmor: 'GL', wDisc: 'VK', sRes: 'KHƯ', bossRed: 'BR', interest: 'Lãi', hRegen: 'HT', ksUnbreak: '🏰', ksGranary: '🌾' };
+const ABBR = { atk: '⚔️', aspd: '💨', crit: '🎯', splash: '💥', range: '🏹', skillR: '⭕', pen: '🗡️', critD: '💢', multi: '🔱', elite: '👑', boss: '💀', ksSteel: '⚙️', ksExec: '☠️', spell: '🔮', cdrH: '⏱️', castH: '✋', sumHp: '❤️', tEnergy: '🔋', castT: '🌀', cdrT: '⏲️', sumCap: '👥', cc: '⛓️', sumAtk: '🐺', mresRed: '🧿', sumDur: '⌛', ksTwice: '⚡', ksArmy: '⚑', thp: '🧱', armor: '🛡️', harv: '🌾', harvT: '🧺', regen: '💚', reflect: '🪞', beltSpd: '🛤️', rollDisc: '🎲', trap: '🪤', sArmor: '🪖', wDisc: '🏷️', sRes: '🧪', bossRed: '🛑', interest: '💰', hRegen: '💗', ksUnbreak: '🏰', ksGranary: '🏦' };
 const abbr = k => ABBR[k] || k;
 
 // Thẻ sự kiện lúc bình minh (+ báo cáo wave trước)
 UI.showCards = (cards, rep) => {
   closePanel(); UI.auction = null;
   let r = '';
-  if (rep) r = rep.win ? `<div class="rep">✅ Wave ${rep.wave} thắng${rep.timeUp ? ' (hết giờ)' : ''} · Diệt ${rep.kills} quái · +${rep.gold.total} 💰 (gốc ${rep.gold.base} + lãi ${rep.gold.interest} + chuỗi ${rep.gold.streak}) · +1 điểm chỉ số${rep.kc ? ` · +${rep.kc} 💎` : ''} · Nuôi quân -${rep.upkeep} 🌾 ${rep.hungry ? '<b class="warn">⚠ Thiếu lúa: -20% ATK!</b>' : ''}</div>` : `<div class="rep bad">❌ Mất 1 mạng ở wave ${rep.wave}. Wave chơi lại với quái -15% HP.</div>`;
+  if (rep) r = rep.win ? `<div class="rep" style="font-size:15px">✅ 🌊${rep.wave}${rep.timeUp ? ' ⏱️' : ''} &nbsp; <span data-tip="Quái đã diệt">💀 ${rep.kills}</span> &nbsp; <span data-tip="Vàng: gốc ${rep.gold.base} + lãi ${rep.gold.interest} + chuỗi thắng ${rep.gold.streak}">💰 +${rep.gold.total}</span> &nbsp; <span data-tip="+1 điểm Bảng chỉ số (C)">📊 +1</span>${rep.kc ? ` &nbsp; 💎 +${rep.kc}` : ''} &nbsp; <span data-tip="Lúa nuôi quân mỗi đêm">🍚 −${rep.upkeep} 🌾</span> ${rep.hungry ? '<b class="warn" data-tip="Thiếu lúa: toàn quân -20% ATK">⚠️ -20% ⚔️</b>' : ''}</div>` : `<div class="rep bad">💔 −1 ❤ (wave ${rep.wave}) — chơi lại với quái −15% HP.</div>`;
   $('ptitle').innerHTML = `🌅 Bình minh — ngày ${G.wave}`;
-  $('pbody').innerHTML = `${r}<h3>Chọn 1 Thẻ Sự Kiện ${G.wave % 5 === 0 ? '(có thẻ Vàng hiếm!)' : ''}</h3><div class="cards">${cards.map(id => { const c = CARD[id]; return `<div class="card ${c.gold ? 'gold' : ''}" data-act="card" data-arg="${id}"><small>${c.g}</small><b>${c.n}</b><p>${c.d}</p></div>`; }).join('')}</div>`;
+  $('pbody').innerHTML = `${r}<h3>Chọn 1 Thẻ Sự Kiện ${G.wave % 5 === 0 ? '(có thẻ Vàng hiếm!)' : ''}</h3><div class="cards">${cards.map(id => { const c = CARD[id]; return `<div class="card ${c.gold ? 'gold' : ''}" data-act="card" data-arg="${id}"><small>${c.g}</small><i class="ci">${CGI[c.g] || '🃏'}</i><b>${c.n}</b><p>${c.d}</p></div>`; }).join('')}</div>`;
   UI.panel = 'cards'; $('panel').className = 'p-cards'; $('panel').classList.remove('hide');
 };
 UI.showLose = () => {
@@ -2303,18 +2358,125 @@ UI.showLose = () => {
   $('panel').className = 'p-cards'; $('panel').classList.remove('hide');
 };
 UI.showEnd = win => {
-  closePanel(); $('hud').classList.add('hide');
+  closePanel(); $('hud').classList.add('hide'); Tut.hide();
   menu(`<h1>${win ? '🏆 HOÀN THÀNH BẢN TEST!' : '☠️ THẤT BẠI'}</h1><div class="sub">${win ? `Bạn đã sống sót 5 wave đầu với ${civ().name}` : `Hết mạng ở wave ${G.wave}`}</div>
   <table class="info"><tr><td>Văn minh</td><td>${civ().name}</td><td>Độ khó</td><td>${diffObj().name}</td></tr><tr><td>Quái đã diệt</td><td>${G.kills}</td><td>Mạng còn</td><td>${G.lives}</td></tr><tr><td>Thời đại tòa</td><td>${CONFIG.AGES[G.tower.age].name}</td><td>Tướng</td><td>${G.heroes.map(h => HERO[h.id].name + ' ' + h.star + '★').join(', ')}</td></tr><tr><td>Vũ khí</td><td colspan="3">${allWeapons().map(w => WEAPON[w.id].n + ' ' + w.star + '★').join(', ') || '—'}</td></tr></table>
   <p>Danh Vọng nhận: <b>+${win ? 10 * G.wave + G.lives * 5 : 5 * G.wave}</b></p><div class="mbtns"><button class="big" data-act="mNew">⚔️ Trận mới</button><button data-act="quit">🏠 Menu</button></div>`);
 };
+
+// =====================================================================
+//  HƯỚNG DẪN TƯƠNG TÁC: từng bước, chỉ vào đúng nút / vị trí trên map
+// =====================================================================
+const PH_ORD = { place: 0, dawn: 1, day: 2, dusk: 3, night: 4, end: 5 };
+function tutMine() {
+  if (!R.tower || !R.map) return null; const own = R.map.mines.find(m => G.ext[m.id]); if (own) return own;
+  const d = m => Math.hypot(tc(m.x) - R.tower.x, tc(m.y) - R.tower.y); return R.map.mines.slice().sort((a, b) => d(a) - d(b))[0];
+}
+const mineW = m => m && { x: tc(m.x), y: tc(m.y), r: 36 };
+function lanePoint() { if (!R.lanes) return null; const l = R.lanes[R.plan ? R.plan.lanes[0] : 0], p = lanePos(l, l.total * .55); return { x: p.x, y: p.y, r: 24 }; }
+const blocked = () => UI.panel && !['hero', 'build'].includes(UI.panel);   // bảng đang che bản đồ
+const buildTgt = tool => R.tool === tool ? null : UI.panel === 'build' ? `#pbody [data-act="tool"][data-arg="${tool}"]` : blocked() ? '#pclose' : '#btnRow [data-arg="build"]';
+const closeOther = keep => () => { if (UI.panel && UI.panel !== keep) { closePanel(); render(); } };
+const TUT = [
+  { w: 1, ph: 'place', i: '📍', t: 'Đặt Tòa Văn Minh', x: 'Bấm vào 1 <b>vòng tròn vàng</b> trên bản đồ để xây thành của bạn. Kéo chuột để di chuyển bản đồ, lăn chuột để phóng to.',
+    tgt: () => { const c = S.cameras.main.midPoint, d = s => Math.hypot(tc(s.x) - c.x, tc(s.y) - c.y), s = R.map.spots.slice().sort((a, b) => d(a) - d(b))[0]; return { x: tc(s.x), y: tc(s.y), r: 28 }; }, done: () => !!G.towerTile },
+  { w: 1, ph: 'dawn', i: '🃏', t: 'Thẻ sự kiện', x: 'Mỗi bình minh chọn <b>1 trong 3 thẻ</b>. Thẻ cho lợi thế trong ngày hôm đó.', tgt: () => '#pbody .cards', done: () => !!G.card },
+  { w: 1, ph: 'day', i: '💰', t: 'Tài nguyên', x: '💰 Vàng mua tướng · 💎 Kim cương mua vũ khí · 🌾🪵🪨⛓️ để xây dựng.<br>Mẹo: <b>rê chuột</b> lên bất kỳ biểu tượng nào để xem giải thích.', tgt: () => '#resBox', manual: true, enter: closeOther() },
+  { w: 1, ph: 'day', i: '⏸️', t: 'Ban ngày = chuẩn bị', x: 'Ban ngày (90 giây) để mua tướng và xây dựng. Trong hướng dẫn, <b>đồng hồ tạm dừng</b> chờ bạn làm xong.', tgt: () => '#phaseBox', manual: true },
+  { w: 1, ph: 'day', i: '🎲', t: 'Mua tướng', x: 'Bấm nút <b>Mua</b> của 1 tướng bất kỳ. Tướng mới vào <b>Hàng chờ</b> ở dưới cùng.', enter: () => { if (UI.panel !== 'shop') openPanel('shop'); },
+    tgt: () => UI.panel === 'shop' ? '#pbody .shop' : blocked() ? '#pclose' : '#btnRow [data-arg="shop"]', done: () => G.heroes.reduce((s, h) => s + h.star, 0) >= 2 },
+  { w: 1, ph: 'day', i: '🚩', t: 'Đưa tướng ra trận', x: 'Đóng bảng ✕ → bấm 1 tướng ở <b>Hàng chờ</b> → <b>🚩 Đặt ra ngoài thành</b> → bấm lên bản đồ gần thành.',
+    tgt: () => R.placing ? { x: R.tower.x + 90, y: R.tower.y + 70, r: 26 } : UI.panel === 'hero' ? '#pbody [data-act="place"]' : UI.panel ? '#pclose' : '#bench .bch:not(.empty)', done: () => fieldHeroes().length >= 1 },
+  { w: 1, ph: 'day', i: '🧺', t: 'Thu hoạch tay', x: 'Bấm vào <b>mỏ</b> đang được chỉ: dân sẽ chạy ra thu hoạch một ít tài nguyên.', pan: () => mineW(tutMine()),
+    tgt: () => blocked() ? '#pclose' : mineW(tutMine()), done: () => Tut.f.harvest },
+  { w: 1, ph: 'day', i: '⛏️', t: 'Máy khai thác', x: 'Mở <b>🔨 Xây</b> (phím <kbd>B</kbd>) → chọn <b>⛏️</b> → bấm vào mỏ. Máy sẽ khai thác liên tục.', pan: () => mineW(tutMine()),
+    tgt: () => buildTgt('extr') || mineW(tutMine()), done: () => Object.keys(G.ext).length >= 1 },
+  { w: 1, ph: 'day', i: '🛤️', t: 'Băng chuyền', x: 'Chọn <b>🛤️</b>, <b>giữ chuột trái</b> trên máy khai thác rồi <b>kéo</b> về khung xanh quanh thành, thả ra. Tài nguyên sẽ chạy về kho.', pan: () => mineW(tutMine()),
+    tgt: () => buildTgt('belt') || mineW(tutMine()), done: () => R.map.mines.some(m => { const s = extStatus(m); return s && s.ok; }) },
+  { w: 1, ph: 'day', i: '🌇', t: 'Sẵn sàng!', x: 'Chuẩn bị xong. Bấm <b>🌇 ▶</b> (hoặc <kbd>Enter</kbd>) để sang Hoàng hôn.', enter: () => { if (R.tool) World.setTool(R.tool); closeOther()(); }, tgt: () => '#btnReady', done: () => PH_ORD[G.phase] > 2 },
+  { w: 1, ph: 'dusk', i: '🪤', t: 'Bẫy chông', x: '<b style="color:#ff6b6b">Mũi tên đỏ</b> là đường quái sẽ đi. Mở 🔨 → chọn <b>🪤</b> → bấm lên con đường đó.', enter: () => { if (G.res.wood < 15) G.res.wood += 15; }, pan: lanePoint,
+    tgt: () => buildTgt('trap') || lanePoint(), done: () => G.traps.length >= 1 },
+  { w: 1, ph: 'dusk', i: '🌙', t: 'Bắt đầu đêm', x: 'Bấm <b>🌙 ▶</b> để quái kéo tới. Lính trên tòa và tướng sẽ <b>tự đánh</b>.', enter: () => { if (R.tool) World.setTool(R.tool); closeOther()(); }, tgt: () => '#btnReady', done: () => PH_ORD[G.phase] > 3 },
+  { w: 1, ph: 'night', i: '💥', t: 'Chiêu tướng', x: 'Khi quái tới gần, bấm <b>💥</b> (phím <kbd>W</kbd>) để tướng tung chiêu diện rộng.', need: () => fieldHeroes().length, tgt: () => '#fieldRow .port .sw', done: () => Tut.f.w },
+  { w: 1, ph: 'night', i: '🏛️', t: 'Tuyệt kỹ Tòa', x: 'Bấm <b>nút tròn lớn</b> (phím <kbd>F</kbd>) để Tòa Văn Minh tung tuyệt kỹ của nền văn minh bạn.', tgt: () => '#fBtn', done: () => Tut.f.f },
+  { w: 1, ph: 'night', i: '🖱️', t: 'Ra lệnh cho tướng', x: 'Bấm tên tướng để chọn, rồi <b>chuột phải</b> lên bản đồ để ra lệnh di chuyển/tấn công.', need: () => fieldHeroes().length, tgt: () => '#fieldRow .port .pt', done: () => Tut.f.order },
+  { w: 1, ph: 'night', i: '🛡️', t: 'Giữ thành!', x: 'Diệt hết quái để thắng đêm. Thanh máu ở trên là máu Tòa — về 0 là mất 1 ❤.', tgt: () => '#towerBar', manual: true },
+  { w: 2, ph: 'dawn', i: '📜', t: 'Báo cáo đêm qua', x: 'Thắng đêm được <b>💰 vàng</b> và <b>📊 +1 điểm</b>, nhưng tốn <b>🌾 lúa</b> nuôi quân. Chọn 1 thẻ để sang ngày mới.', tgt: () => '#pbody .rep', done: () => !!G.card },
+  { w: 2, ph: 'day', i: '📊', t: 'Bảng chỉ số', x: 'Bạn có điểm chỉ số! Mở <b>📊</b> (phím <kbd>C</kbd>) và bấm 1 ô tầng T1 để nâng. Ô viền đôi hợp với văn minh của bạn (+20%).', enter: closeOther('stats'),
+    tgt: () => UI.panel === 'stats' ? '#pbody .board' : UI.panel ? '#pclose' : '#btnRow [data-arg="stats"]', done: () => Object.values(G.spentPts).some(v => v > 0) },
+  { w: 2, ph: 'day', i: '⚒️', t: 'Vũ khí phòng thủ', x: 'Mở <b>⚒️</b> (phím <kbd>S</kbd>), bấm <b>💎 Roll</b> rồi <b>Lấy</b> 1 vũ khí. Vũ khí tự gắn lên tòa và bắn quái.', enter: () => { closeOther('smith')(); if (G.res.dia < wRollCost()) G.res.dia = wRollCost(); },
+    tgt: () => UI.panel === 'smith' ? (G.wshop.offers.length ? '#pbody [data-act="wtake"]' : '#pbody [data-act="wroll"]') : UI.panel ? '#pclose' : '#btnRow [data-arg="smith"]', done: () => allWeapons().length >= 1 },
+  { w: 2, ph: 'day', i: '🗡️', t: 'Trang bị cho tướng', x: 'Bấm <b>ⓘ</b> trên thẻ tướng → <b>🗡️ Kiếm Sắt → gắn</b>. 2 món cơ bản trên cùng 1 tướng sẽ ghép thành món mạnh hơn.', enter: () => { closeOther('hero')(); if (!G.items.length && !G.heroes.some(h => h.eq.length)) G.items.push('sword'); },
+    tgt: () => UI.panel === 'hero' ? '#pbody [data-act="equip"]' : UI.panel ? '#pclose' : fieldHeroes().length ? '#fieldRow .port .mini' : '#bench .bch:not(.empty)', done: () => G.heroes.some(h => h.eq.length) },
+  { w: 2, ph: 'day', i: '⭐', t: 'Ghép sao', x: '2 tướng <b>giống nhau 1★</b> tự ghép thành <b>2★</b> (mạnh ×1.25); 2 bản 2★ → 3★. Quà hướng dẫn: tặng bạn 1 bản sao tướng chủ lực!', enter: () => { closeOther()(); addHero(civ().key, 1, 0); World.syncHeroes(); render(); },
+    tgt: () => '#center', manual: true },
+  { w: 2, ph: 'day', i: '🏛️', t: 'Nâng thời đại', x: 'Quà: <b>+200 mỗi tài nguyên</b>. Mở <b>🔨</b> → bấm <b>▲ Lên Cổ đại</b>. Tòa trâu hơn, thêm ô vũ khí, ra tướng xịn hơn.', enter: () => { closeOther('build')(); for (const k of RES_KEYS) gain(k, 200); },
+    tgt: () => UI.panel === 'build' ? '#pbody [data-act="age"]' : UI.panel ? '#pclose' : '#btnRow [data-arg="build"]', done: () => !!G.tower.building || G.tower.age >= 2 },
+  { w: 2, ph: 'day', i: '🎓', t: 'Bạn đã sẵn sàng!', x: 'Mẹo cuối: 2–3 tướng <b>cùng biểu tượng nhóm</b> ngoài trận được +10%/+25% sức mạnh. Đặt tướng gần mỏ xa để đuổi trinh sát. Sống sót đến wave 5 nhé!', manual: true },
+];
+const Tut = {
+  f: {}, drawn: -1,
+  on: () => !!(G && G.tut && !G.tut.off && G.tut.i < TUT.length),
+  step: () => Tut.on() ? TUT[G.tut.i] : null,
+  live() { const s = Tut.step(); return s && s.w === G.wave && s.ph === G.phase ? s : null; },
+  holds() { return !!Tut.live() && (G.phase === 'day' || G.phase === 'dusk'); },   // đồng hồ ngày/hoàng hôn đứng chờ
+  flag(k) { if (Tut.on()) Tut.f[k] = true; },
+  next() { G.tut.i++; Tut.f = {}; sfx('star'); if (G.tut.i >= TUT.length) Tut.end(true); UI.refresh(); },
+  hide() { $('coach').classList.add('hide'); $('tutHi').classList.add('hide'); Tut.drawn = -1; },
+  end(done) { if (G && G.tut) G.tut.off = true; Tut.hide(); const p = profile(); p.tutDone = true; saveProfile(p); if (done) toast('🎓 Hoàn thành hướng dẫn! Chúc bạn giữ thành thành công'); },
+  update() {
+    if (!Tut.on()) { if (Tut.drawn !== -1 || !$('coach').classList.contains('hide')) Tut.hide(); return; }
+    let s = Tut.step();
+    // bỏ bước đã lỡ pha, hoặc không làm được (vd. chưa có tướng ngoài trận)
+    while (s && (G.wave > s.w || (G.wave === s.w && PH_ORD[G.phase] > PH_ORD[s.ph]) || (s.w === G.wave && s.ph === G.phase && s.need && !s.need()))) { G.tut.i++; Tut.f = {}; s = Tut.step(); }
+    if (!s) return Tut.end(true);
+    if (!Tut.live()) return Tut.hide();
+    if (G.tut.e !== G.tut.i) {
+      G.tut.e = G.tut.i; s.enter && s.enter();
+      const p = s.pan && s.pan(); if (p && R.tower && S) { const cam = S.cameras.main; cam.zoomTo(.85, 300); cam.pan((p.x + R.tower.x) / 2, (p.y + R.tower.y) / 2 + 60, 400); }
+    }
+    if (s.done && s.done()) return Tut.next();
+    Tut.draw(s);
+  },
+  draw(s) {
+    const c = $('coach'), i = G.tut.i;
+    if (Tut.drawn !== i) {
+      Tut.drawn = i; c.classList.remove('hide'); c.classList.remove('tutDone'); void c.offsetWidth; c.classList.add('tutDone');
+      c.querySelector('.cIco').textContent = s.i === '🏛️' && s.ph === 'night' ? (TSI[G.civ] || s.i) : s.i;
+      c.querySelector('.cTitle').textContent = s.t; c.querySelector('.cText').innerHTML = s.x;
+      c.querySelector('.cProg').textContent = `${i + 1}/${TUT.length}`;
+      c.querySelector('.cBtns').innerHTML = (s.manual ? `<button class="big" data-act="tutNext">${i === TUT.length - 1 ? '🎓 Hoàn thành' : 'Tiếp ▶'}</button>` : `<button class="cSkip" data-act="tutNext">Bỏ qua bước này</button>`) + `<button class="cSkip" data-act="tutOff" style="margin-left:auto">Tắt hướng dẫn</button>`;
+    }
+    // vị trí khung chỉ dẫn
+    const t = s.tgt ? s.tgt() : null, hi = $('tutHi'); let box = null;
+    if (typeof t === 'string') {
+      const el = document.querySelector(t);
+      if (el && el.getClientRects().length) { const r = el.getBoundingClientRect(), wr = $('wrap').getBoundingClientRect(), sc = UI.scale || 1; box = { x: (r.left - wr.left) / sc - 4, y: (r.top - wr.top) / sc - 4, w: r.width / sc + 8, h: r.height / sc + 8 }; }
+    } else if (t && S && S.cameras) {
+      const cam = S.cameras.main, v = cam.worldView, z = cam.zoom, rr = (t.r || 30) * z;
+      box = { x: (t.x - v.x) * z - rr, y: (t.y - v.y) * z - rr, w: rr * 2, h: rr * 2, round: true };
+    }
+    if (box) {
+      hi.classList.remove('hide'); hi.classList.toggle('round', !!box.round); hi.classList.toggle('below', box.y < 60);
+      Object.assign(hi.style, { left: box.x + 'px', top: box.y + 'px', width: box.w + 'px', height: box.h + 'px' });
+    } else hi.classList.add('hide');
+    // bảng đang mở → hộp hướng dẫn lên trên cùng; nếu che mục tiêu → sang trái
+    const top = !!UI.panel; c.classList.toggle('top', top);
+    c.classList.toggle('left', !top && !!box && box.x + box.w > 920 && box.y < 220);
+  },
+};
+Object.assign(A, {
+  mTut: () => { UI.setup = { diff: 'normal', mut: {}, tut: true, showAll: true }; A.sCiv(); },
+  tutNext: () => { if (Tut.on()) Tut.next(); },
+  tutOff: () => { Tut.end(false); toast('Đã tắt hướng dẫn'); },
+});
 
 // ---------- Hành động ----------
 Object.assign(A, {
   ready: () => World.ready(),
   speed: () => { CONFIG.SPEED = CONFIG.SPEED >= 4 ? 1 : CONFIG.SPEED * 2; render(); },
   mute: () => { SFX.on = !SFX.on; render(); },
-  escMenu: () => { World.pause(true); openPanel('esc'); },
+  escMenu: () => { World.pause(true); Tut.hide(); openPanel('esc'); },
   resume: () => { closePanel(); World.pause(false); },
   panel: p => { if (UI.panel === p) return closePanel(); if (['shop', 'smith'].includes(p) && !dayOnly()) return; if (['stats', 'build'].includes(p) && G.phase === 'night') return toast('Chỉ dùng được ban ngày'); openPanel(p); },
   hsel: u => World.select(+u), hq: u => World.castQ(+u), hw: u => World.castW(+u), f: () => World.castF(),
