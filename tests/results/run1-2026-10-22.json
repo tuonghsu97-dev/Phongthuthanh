@@ -1,0 +1,22 @@
+{"at":"2026-10-22T15:42:04.305Z","total":20,"passed":18,"failed":2,"skipped":0,"note":"Lần chạy 1 — T01 và T17 FAIL do lỗi trong chính test (xem run2)","rows":[
+{"id":"T01","status":"FAIL","expected":"0 viên đạn đứng im; pool tái sử dụng (≤20 sprite cho 45 phát)","actual":"0 viên đứng im; pool có 30 sprite"},
+{"id":"T02","status":"PASS","actual":"wave5: 1 boss (true); wave4: 0"},
+{"id":"T03","status":"PASS","actual":"boss=true, HP=4608, gđ=1, bossBar=true, nhạc=boss"},
+{"id":"T04","status":"PASS","actual":"gđ=2, quái 1→5, tốc 15→18.8"},
+{"id":"T05","status":"PASS","actual":"cảnh báo=true; trong vòng −289; ngoài vòng −0"},
+{"id":"T06","status":"PASS","actual":"choáng 0.60s"},
+{"id":"T07","status":"PASS","actual":"+10💎 +1🔋 +10💰 +1 vũ khí, 0 cảnh báo, nhạc night, hitstop 0.30"},
+{"id":"T08","status":"PASS","actual":"t0=1.78, sau 150ms=1.78, sau 850ms=2.21"},
+{"id":"T09","status":"PASS","actual":"\"80!\" cỡ 20px"},
+{"id":"T10","status":"PASS","actual":"3 lựa chọn (3 khác nhau), 3 thẻ, chặn thẻ=true, pendUpg=3"},
+{"id":"T11","status":"PASS","actual":"spell ×1, bước thẻ=true, +ATK mỗi lần=12.0%"},
+{"id":"T12","status":"PASS","actual":"0/300 lần"},
+{"id":"T13","status":"PASS","actual":"giới hạn 3, lính 3"},
+{"id":"T14","status":"PASS","actual":"thường chết=true, elite chết=true (hiển thị sai: đọc sau khi test tự dọn quái)"},
+{"id":"T15","status":"PASS","actual":"night → null → day"},
+{"id":"T16","status":"PASS","actual":"esc → cards, thẻ hiện=true"},
+{"id":"T17","status":"FAIL","expected":"phím R bị chặn","actual":"trong=true, ngoài=false, phải=false, nút=false, hộp=true, R mở bảng=true (bảng 'cards' sót từ T16)"},
+{"id":"T18","status":"PASS","actual":"Bấm ✕… | Tướng mới nằm ở Hàng chờ… | Bấm 🚩 Đặt ra ngoài thành. | Bấm vào vòng sáng trên bản đồ… | map=true"},
+{"id":"T19","status":"PASS","actual":"wave=2, pha=dawn, lỗi JS=0, nâng cấp=3"},
+{"id":"T20","status":"PASS","actual":"boss=true, thắng=true, lỗi JS=0"}
+]}

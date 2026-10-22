@@ -146,12 +146,21 @@ table.info{border-collapse:collapse;width:100%;margin:4px 0}table.info td,table.
 #coach .cBtns{display:flex;gap:6px;margin-top:6px;align-items:center}
 #coach .cProg{position:absolute;right:10px;top:6px;font-size:10px;color:#aab}
 #coach .cSkip{background:none;border:none;color:#99a;text-decoration:underline;padding:0;font-size:11px}
-#tutHi{position:absolute;z-index:8;pointer-events:none;border:3px solid var(--acc);border-radius:10px;box-shadow:0 0 0 4000px #0000,0 0 16px var(--acc);animation:tutP 1s infinite}
+#tutHi{position:absolute;z-index:8;pointer-events:none;border:3px solid var(--acc);border-radius:10px;box-shadow:0 0 0 4000px #000a,0 0 16px var(--acc);animation:tutP 1s infinite}
+#tutHi.nudge{animation:tutP 1s infinite,tutNo .35s}@keyframes tutNo{20%,60%{translate:-6px 0}40%,80%{translate:6px 0}}
 #tutHi.round{border-radius:50%}
 #tutHi::after{content:"👇";position:absolute;left:50%;top:-34px;transform:translateX(-50%);font-size:26px;animation:tutB .7s infinite alternate}
 #tutHi.below::after{content:"👆";top:auto;bottom:-34px}
-@keyframes tutP{50%{box-shadow:0 0 0 4000px #0000,0 0 26px var(--acc);border-color:#fff}}
+@keyframes tutP{50%{box-shadow:0 0 0 4000px #000a,0 0 26px var(--acc);border-color:#fff}}
 @keyframes tutB{to{margin-top:-8px}}
+/* ---- Boss & nâng cấp ---- */
+#bossBar{position:absolute;top:74px;left:50%;transform:translateX(-50%);width:560px;pointer-events:none;text-shadow:0 1px 2px #000;z-index:2}
+#bossBar .bn{display:flex;justify-content:space-between;font-family:var(--hfont);font-weight:700;color:#ff8a80;font-size:14px}
+#bossBar .bar{height:14px;background:#000a;border:2px solid #ff5252;border-radius:7px;overflow:hidden;box-shadow:0 0 14px #ff174488}
+#bossHp{display:block;height:100%;background:linear-gradient(90deg,#b71c1c,#ff5252);transition:width .15s}
+#cardChip .upgchip{display:flex;gap:4px;padding:2px 8px}#cardChip .upgchip i{font-style:normal;font-size:14px}#cardChip .upgchip sub{font-size:9px;color:var(--acc)}
+.card.upg.r1{border-color:#3498db;box-shadow:0 0 10px #3498db66}.card.upg.r2{border-color:#b45cff;box-shadow:0 0 16px #b45cffaa}
+.card .stk{display:block;font-style:normal;font-size:11px;color:var(--acc);margin-top:4px}
 .tutDone{animation:tutOk .6s}@keyframes tutOk{from{scale:1.06}}
 .fbtn[data-cd]::after{border-radius:50%/40%}
 </style>
@@ -169,6 +178,7 @@ table.info{border-collapse:collapse;width:100%;margin:4px 0}table.info td,table.
       <div id="sysBtns"><button id="btnSpeed" data-act="speed" data-tip="Tốc độ game (F4)">x1</button><button id="btnMute" data-act="mute">🔊</button><button data-act="escMenu" data-tip="Menu (Esc)">☰</button></div>
     </div>
     <div id="towerBar"><div id="towerLbl"></div><div class="bar"><i id="towerHp"></i><b id="towerSh"></b></div></div>
+    <div id="bossBar" class="hide"><div class="bn"><span id="bossName"></span><span id="bossPh"></span></div><div class="bar"><i id="bossHp"></i></div></div>
     <div id="cardChip"></div>
     <div id="bottom">
       <div id="minimap"></div>
@@ -496,6 +506,40 @@ const CELLS = [];
 for (const b of ['cong', 'phep', 'thu']) BOARD[b].tiers.forEach((tier, t) => { let i = 0; for (const [k, n] of tier) for (let j = 0; j < n; j++) CELLS.push({ id: `${b}${t}_${i++}`, b, t, k, max: STAT_DEF[k][2] === 'k' ? 1 : 5 }); });
 const CELL = Object.fromEntries(CELLS.map(c => [c.id, c]));
 
+// ---- Boss mỗi 5 wave (dựa trên quái lớn của phe đêm đó) ----
+const BOSSES = {
+  zombie: { n: 'Vua Xác Sống', base: 'giant' }, beast: { n: 'Chúa Tể Troll', base: 'troll' },
+  alien: { n: 'Nữ Hoàng Bóng Tối', base: 'stalker' }, cybot: { n: 'Siêu Mech Omega', base: 'mech' },
+};
+const BOSS = { every: 5, hp: 2400, dmg: 55, spd: 15, arm: 18, mr: 15, as: .6, scale: 2.3, slamCd: 7, slamR: 110, slamT: 1.6, cc: .3 };
+
+// ---- Nâng cấp chiến thắng (roguelike): chọn 1/3 sau mỗi đêm thắng, cộng dồn cả trận ----
+const UPG_RAR = [{ n: 'Thường', w: 10 }, { n: 'Hiếm', w: 4 }, { n: 'Sử thi', w: 1.5 }];
+const UPGRADES = [
+  { id: 'sharp', i: '⚔️', n: 'Mũi Tên Tẩm Thép', d: '+12% ATK toàn quân', rar: 0, max: 5 },
+  { id: 'swift', i: '💨', n: 'Tay Nhanh', d: '+12% tốc đánh', rar: 0, max: 5 },
+  { id: 'eagle', i: '🦅', n: 'Mắt Đại Bàng', d: '+10% tầm bắn', rar: 0, max: 3 },
+  { id: 'crit', i: '🎯', n: 'Điểm Yếu', d: '+8% chí mạng', rar: 0, max: 5 },
+  { id: 'walls', i: '🧱', n: 'Tường Dày', d: '+15% HP tòa', rar: 0, max: 5 },
+  { id: 'armor', i: '🛡️', n: 'Khiên Đồng', d: '+6 giáp tòa', rar: 0, max: 5 },
+  { id: 'regen', i: '💚', n: 'Suối Nguồn', d: 'Tòa hồi 0.3% HP/giây', rar: 0, max: 3 },
+  { id: 'harvest', i: '🌾', n: 'Mùa Bội Thu', d: '+15% sản lượng mọi tài nguyên', rar: 0, max: 3 },
+  { id: 'interest', i: '💰', n: 'Ngân Khố', d: '+3 vàng mỗi wave', rar: 0, max: 3 },
+  { id: 'spell', i: '🔮', n: 'Phép Cổ', d: '+15% sức mạnh phép & skill tòa', rar: 0, max: 4 },
+  { id: 'cdr', i: '⏱️', n: 'Thiền Định', d: '-8% hồi chiêu tướng & tòa', rar: 0, max: 3 },
+  { id: 'summon', i: '🐺', n: 'Bầy Đàn', d: 'Lính triệu hồi +20% HP & ATK', rar: 0, max: 3 },
+  { id: 'multi', i: '🔱', n: 'Tên Đôi', d: '+35% cơ hội lính bắn thêm 1 mục tiêu', rar: 1, max: 3 },
+  { id: 'splash', i: '💥', n: 'Đầu Nổ', d: '+15% sát thương lan', rar: 1, max: 3 },
+  { id: 'soldier', i: '🏹', n: 'Tân Binh', d: '+1 lính trên tòa (tăng giới hạn)', rar: 1, max: 2 },
+  { id: 'trap', i: '🪤', n: 'Bẫy Tẩm Độc', d: 'Bẫy +40% sát thương, +2 bẫy miễn phí mỗi hoàng hôn', rar: 1, max: 2 },
+  { id: 'vamp', i: '🩸', n: 'Huyết Kiếm', d: 'Tướng hút 8% sát thương gây ra thành máu', rar: 1, max: 2 },
+  { id: 'chain', i: '⚡', n: 'Sét Báo Thù', d: 'Quái chết có 20% phóng sét nảy 3 quái', rar: 2, max: 2 },
+  { id: 'execute', i: '☠️', n: 'Kết Liễu', d: 'Quái thường dưới 12% máu chết ngay (không áp dụng boss)', rar: 2, max: 1 },
+  { id: 'phoenix', i: '🔥', n: 'Phượng Hoàng', d: 'Lần đầu tòa về 0 HP mỗi đêm: hồi sinh 30% HP', rar: 2, max: 1 },
+  { id: 'nova', i: '🌟', n: 'Bộc Phá', d: 'Đòn chí mạng nổ lan 40% sát thương quanh mục tiêu', rar: 2, max: 1 },
+];
+const UPG = Object.fromEntries(UPGRADES.map(u => [u.id, u]));
+
 const METEORS = [{ n: 'Ngọc Hỏa', w: '8–14', d: '+10% ATK toàn quân' }, { n: 'Ngọc Băng', w: '18–26', d: '+10% giáp, quái chậm 5%' }, { n: 'Ngọc Lôi', w: '28–38', d: '-10% hồi chiêu tướng & tòa' }];
 
 // Ảnh dựng từ model 3D (Blender) — Tòa Trung Hoa 5 cấp & Quan Vũ
@@ -544,12 +588,36 @@ function sfx(type) {
   try {
     if (!SFX.ctx) SFX.ctx = new (window.AudioContext || window.webkitAudioContext)();
     const c = SFX.ctx, t = c.currentTime, o = c.createOscillator(), g = c.createGain();
-    const P = { shoot: ['triangle', 880, 440, .05, .03], hit: ['square', 200, 90, .06, .04], kill: ['square', 420, 120, .12, .05], coin: ['sine', 900, 1500, .1, .06], build: ['triangle', 300, 600, .15, .08], ui: ['sine', 660, 660, .05, .04], skill: ['sawtooth', 160, 640, .35, .07], boom: ['sawtooth', 120, 40, .4, .1], bad: ['square', 220, 110, .3, .07], night: ['sine', 300, 150, .8, .08], day: ['sine', 400, 800, .6, .07], star: ['triangle', 600, 1200, .3, .07] }[type] || ['sine', 500, 500, .05, .03];
+    const P = { shoot: ['triangle', 880, 440, .05, .03], hit: ['square', 200, 90, .06, .04], kill: ['square', 420, 120, .12, .05], coin: ['sine', 900, 1500, .1, .06], build: ['triangle', 300, 600, .15, .08], ui: ['sine', 660, 660, .05, .04], skill: ['sawtooth', 160, 640, .35, .07], boom: ['sawtooth', 120, 40, .4, .1], bad: ['square', 220, 110, .3, .07], night: ['sine', 300, 150, .8, .08], day: ['sine', 400, 800, .6, .07], star: ['triangle', 600, 1200, .3, .07], boss: ['sawtooth', 110, 35, 1.1, .12], warn: ['square', 520, 380, .22, .05], crit: ['square', 300, 120, .08, .05] }[type] || ['sine', 500, 500, .05, .03];
     o.type = P[0]; o.frequency.setValueAtTime(P[1], t); o.frequency.exponentialRampToValueAtTime(Math.max(30, P[2]), t + P[3]);
     g.gain.setValueAtTime(P[4], t); g.gain.exponentialRampToValueAtTime(.0001, t + P[3]);
     o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + P[3] + .02);
   } catch (e) { }
 }
+
+// ---------- Nhạc nền tự sinh: ngày êm (ngũ cung), đêm trống trầm, boss dồn dập ----------
+const Music = {
+  mode: null, step: 0, timer: null,
+  SCALES: { day: [262, 294, 330, 392, 440, 523, 587], dusk: [220, 262, 294, 330, 392], night: [110, 131, 147, 165, 196], boss: [98, 117, 131, 147, 175] },
+  set(mode) { if (mode === this.mode) return; this.mode = mode; this.step = 0; if (mode && !this.timer) this.timer = setInterval(() => this.tick(), 200); },
+  note(f, dur, type, vol, t0 = 0) {
+    const c = SFX.ctx, t = c.currentTime + t0, o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t); g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + dur + .05);
+  },
+  drum(f, vol) { const c = SFX.ctx, t = c.currentTime, o = c.createOscillator(), g = c.createGain(); o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * .4, t + .18); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + .25); o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + .3); },
+  tick() {
+    const c = SFX.ctx; if (!SFX.on || !this.mode || !c || c.state !== 'running' || R.paused) return;
+    const s = this.step++, sc = this.SCALES[this.mode], beat = s % 8;
+    try {
+      if (this.mode === 'day') { if (s % 2 === 0) this.note(pick(sc), .5, 'triangle', .018); if (beat === 0) this.note(sc[0] / 2, 1.4, 'sine', .025); }
+      else if (this.mode === 'dusk') { if (s % 3 === 0) this.note(pick(sc), .8, 'sine', .016); if (beat === 0) this.drum(70, .05); }
+      else if (this.mode === 'night') { if (beat === 0 || beat === 3 || beat === 5) this.drum(beat ? 60 : 80, .07); if (beat === 0) this.note(pick(sc), 1.2, 'triangle', .016); }
+      else if (this.mode === 'boss') { if (s % 2 === 0) this.drum(s % 4 ? 55 : 85, .09); if (beat % 4 === 0) this.note(pick(sc) * 2, .35, 'sawtooth', .012); }
+    } catch (e) { }
+  },
+  forPhase(p) { return p === 'night' ? (R.monsters && R.monsters.some(m => m.boss && !m.dead) ? 'boss' : 'night') : p === 'dusk' ? 'dusk' : p === 'day' || p === 'dawn' ? 'day' : null; },
+};
 
 // ---------- Lưu / tải ----------
 const LS = { get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } } };
@@ -572,7 +640,7 @@ function newGame(o) {
     cells: {}, statPts: 0, spentPts: { cong: 0, phep: 0, thu: 0 }, lastRespec: -99, seals: {},
     ext: {}, belt: {}, procs: {}, broken: {}, traps: [], freeTraps: 0,
     card: null, cardFlags: {}, cardsSeen: [], wins: 0, kills: 0, fame: 0, pakalStacks: 0, odaStacks: 0,
-    meteorShards: 0, gems: [], log: [], tut: o.tut ? { i: 0 } : null,
+    meteorShards: 0, gems: [], log: [], tut: o.tut ? { i: 0 } : null, upg: {},
   };
   // Tướng key được tặng 1★
   G.heroes.push({ uid: uid(), id: c.key, star: 1, eq: [], loc: 'bench', x: 0, y: 0, auto: true });
@@ -641,6 +709,13 @@ function recalc() {
   if (G.riceDebt > 0) M.atk -= .2;
   if (G.heroes.some(h => h.id === 'caesar' && h.loc !== 'bench')) M.armPct += .02 * (G.wins || 0);
   M.spell += .05 * (G.pakalStacks || 0);
+  // Nâng cấp chiến thắng (roguelike)
+  const ug = k => (G.upg || {})[k] || 0;
+  M.atk += .12 * ug('sharp'); M.aspd += .12 * ug('swift'); M.range += .1 * ug('eagle'); M.crit += .08 * ug('crit');
+  M.thp += .15 * ug('walls'); M.armor += 6 * ug('armor'); M.regen += .003 * ug('regen'); M.harv += .15 * ug('harvest'); M.goldFlat += 3 * ug('interest');
+  M.spell += .15 * ug('spell'); M.tEnergy += .15 * ug('spell'); M.cdrH += .08 * ug('cdr'); M.cdrT += .08 * ug('cdr'); M.sumHp += .2 * ug('summon'); M.sumAtk += .2 * ug('summon');
+  M.multi += .35 * ug('multi'); M.splash += .15 * ug('splash'); M.trap += .4 * ug('trap');
+  M.vamp = .08 * ug('vamp'); M.chain = .2 * ug('chain'); M.upExec = ug('execute') ? .12 : 0; M.phoenix = !!ug('phoenix'); M.critNova = !!ug('nova');
   // Trấn thủ: 10% chỉ số tướng vào tòa
   const gar = G.heroes.find(h => h.loc === 'garrison'); M.garAtk = gar ? heroStats(gar).atk * .1 : 0; M.garHp = gar ? heroStats(gar).hp * .1 : 0;
   // Trần chỉ số
@@ -651,7 +726,20 @@ function towerMaxHp() {
   return Math.round((CONFIG.TOWER.hp * mult + (M.garHp || 0)) * (1 + M.thp + G.wall * .15));
 }
 function towerArmor() { return (CONFIG.TOWER.armor + M.armor + G.wall * 4) * (1 + M.armPct); }
-function soldierCap() { return CONFIG.AGES[G.tower.age].floors * 2; }
+function soldierCap() { return CONFIG.AGES[G.tower.age].floors * 2 + ((G.upg || {}).soldier || 0); }
+// ---------- Nâng cấp chiến thắng ----------
+function rollUpgrades(n) {
+  const pool = UPGRADES.filter(u => ((G.upg || {})[u.id] || 0) < u.max), out = [];
+  while (out.length < n && pool.length) { const i = wpick(pool.map(u => UPG_RAR[u.rar].w)); out.push(pool[i].id); pool.splice(i, 1); }
+  return out;
+}
+function pickUpgrade(id) {
+  const u = UPG[id]; if (!u) return false; G.upg = G.upg || {};
+  if ((G.upg[id] || 0) >= u.max) return false;
+  G.upg[id] = (G.upg[id] || 0) + 1; recalc();
+  if (id === 'soldier') G.soldiers = Math.min(soldierCap(), G.soldiers + 1);
+  toast(`${u.i} ${u.n} ×${G.upg[id]}`); sfx('star'); return true;
+}
 function heroStats(h, night) {
   const d = HERO[h.id], sm = STAR_MULT[h.star], it = { atk: 0, as: 0, arm: 0, spell: 0, hp: 0 };
   for (const e of h.eq) { const s = itemStats(e); for (const k in s) it[k] += s[k]; }
@@ -1038,7 +1126,7 @@ function genMap(seed, zone) {
 // ---------- Khởi tạo thế giới ----------
 function setupWorld() {
   timers.length = 0;
-  Object.assign(R, { towerSpr: null, towerLbl: null, towerTop: 0, spotSpr: null, specialSpr: null, subSpr: null, tower: null, monsters: [], allies: [], heroRT: new Map(), projs: [], projPool: [], zones: [], vis: [], buffs: [], jobs: [], trapSpr: [], fences: [], bombs: [], items: [], floats: [], time: 0, acc: { rice: 0, wood: 0, stone: 0, iron: 0 }, rates: { rice: 0, wood: 0, stone: 0, iron: 0 }, solCd: [], subCd: [], wcd: {}, tool: null, sel: null, placing: null, plan: null, beltSpr: [], weather: 'clear', towerShield: 0, paused: false, kills: 0, waitCard: false, mirror: 0, militiaCount: 0, uiT: 0 });
+  Object.assign(R, { towerSpr: null, towerLbl: null, towerTop: 0, spotSpr: null, specialSpr: null, subSpr: null, tower: null, monsters: [], allies: [], heroRT: new Map(), projs: [], projPool: [], zones: [], vis: [], buffs: [], jobs: [], trapSpr: [], fences: [], bombs: [], items: [], floats: [], time: 0, acc: { rice: 0, wood: 0, stone: 0, iron: 0 }, rates: { rice: 0, wood: 0, stone: 0, iron: 0 }, solCd: [], subCd: [], wcd: {}, tool: null, sel: null, placing: null, plan: null, beltSpr: [], weather: 'clear', towerShield: 0, paused: false, kills: 0, waitCard: false, mirror: 0, militiaCount: 0, uiT: 0, warns: [], hitstop: 0, shakeT: {}, upgOffer: G.pendUpg || null });
   R.map = genMap(G.seed, G.zone);
   const W = CONFIG.MW * T, H = CONFIG.MH * T, Z = ZONE();
   S.groundG = S.add.graphics().setDepth(0);
@@ -1163,6 +1251,8 @@ function startDusk() {
   R.jobs = []; R.tool = null; UI.closeDayPanels();
   R.plan = genWave(G.wave); drawLanes();
   if (G.civ === 'vn') { G.freeTraps = 3; toast('🎋 3 bẫy chông miễn phí — bấm B → Bẫy chông để đặt'); }
+  const ft = 2 * ((G.upg || {}).trap || 0); if (ft) { G.freeTraps += ft; toast(`🪤 Bẫy Tẩm Độc: +${ft} bẫy miễn phí`); }
+  if (R.plan.boss) { toast(`👑 CẢNH BÁO: ${BOSSES[R.plan.fac].n} xuất hiện đêm nay! Chuẩn bị né vòng đỏ`); sfx('warn'); }
   const mw = hasW('mines'); if (mw) placeMines(mw);
   UI.refresh(true);
 }
@@ -1189,7 +1279,7 @@ function clearNight() {
   for (const a of R.allies.slice()) removeAlly(a);
   R.zones = []; R.buffs = []; for (const f of R.fences) { f.spr.destroy(); } R.fences = []; R.lanes && R.lanes.forEach(l => l.fence = null);
   for (const b of R.bombs) b.spr.destroy(); R.bombs = [];
-  for (const p of R.projs) releaseProj(p); R.projs = []; R.plan = null; R.militiaCount = 0;
+  for (const p of R.projs) releaseProj(p); R.projs = []; R.plan = null; R.militiaCount = 0; R.warns = []; R.hitstop = 0;
   if (R.lanes) drawLanes();
 }
 function winWave(timeUp) {
@@ -1203,12 +1293,13 @@ function winWave(timeUp) {
   R.kills = 0; R.kcGain = 0;
   sfx('coin'); recalc();
   if (G.wave >= CONFIG.TEST_WAVES) { clearNight(); const p = profile(); p.fame += 10 * G.wave + G.lives * 5; if (G.diff === 'vhard') p.vhardWin = true; saveProfile(p); LS.set('ttvm_auto', null); UI.showEnd(true); return; }
+  R.upgOffer = G.pendUpg = rollUpgrades(3);   // phần thưởng chiến thắng: chọn 1/3 lúc bình minh (lưu cả vào G để không mất khi tải lại)
   G.wave++; G.day++; G.replay = false;
   startDawn();
 }
 function loseWave() {
   if (G.phase !== 'night') return;
-  G.phase = 'end'; G.lives--; G.streak = 0; sfx('bad'); S.cameras.main.shake(400, .01);
+  G.phase = 'end'; G.lives--; G.streak = 0; sfx('bad'); Music.set(null); S.cameras.main.shake(400, .01);
   R.report = { wave: G.wave, win: false, kills: R.kills, gold: { total: 0 } }; R.kills = 0;
   clearNight();
   if (G.lives <= 0) { const p = profile(); p.fame += 5 * G.wave; saveProfile(p); LS.set('ttvm_auto', null); UI.showEnd(false); return; }
@@ -1238,9 +1329,11 @@ function genWave(w) {
   const dur = (24 + 6 * w) * (G.mut.longNight ? 1.3 : 1), q = [];
   for (let i = 0; i < n; i++) { const type = zf && Math.random() < .2 ? pick(zf) : units[wpick(wts)]; q.push({ t: 2 + i / n * dur + rnd(0, 1.5), type, lane: lanes[i % lanes.length] }); }
   if (D.eliteEvery && w % D.eliteEvery === 0) q.push({ t: dur * .7, type: pick(units), lane: pick(lanes), elite: true });
+  const boss = w % BOSS.every === 0;
+  if (boss) q.push({ t: dur * .45, type: BOSSES[fac].base, lane: lanes[0], boss: true });
   q.sort((a, b) => a.t - b.t);
   const counts = {}; for (const e of q) counts[e.type] = (counts[e.type] || 0) + 1;
-  return { fac, lanes, q, n: q.length, counts };
+  return { fac, lanes, q, n: q.length, counts, boss };
 }
 
 // ---------- Cập nhật mỗi frame ----------
@@ -1248,6 +1341,7 @@ function worldUpdate(delta) {
   if (!G || R.paused || !R.tower && G.phase !== 'place') return;
   cameraUpdate(delta);
   if (G.phase === 'place' || G.phase === 'end') { UI.tick(delta); return; }
+  if (R.hitstop > 0) { R.hitstop -= delta / 1000; UI.tick(delta); return; }   // khựng hình khi đòn nặng
   const dt = Math.min(.05, delta / 1000) * CONFIG.SPEED;
   R.time += dt;
   if (G.phase === 'dawn') { if (!R.waitCard) { R.phaseT -= dt; if (R.phaseT <= 0) startDay(); } }
@@ -1255,7 +1349,7 @@ function worldUpdate(delta) {
   else if (G.phase === 'dusk') { if (!Tut.holds()) R.phaseT -= dt; economyUpdate(dt); if (R.phaseT <= 0) startNight(); }
   else if (G.phase === 'night') {
     R.phaseT -= dt; R.nightT += dt;
-    while (R.plan && R.spawnIdx < R.plan.q.length && R.plan.q[R.spawnIdx].t <= R.nightT) { const e = R.plan.q[R.spawnIdx++]; spawnMon(e.type, R.lanes[e.lane], e.elite); }
+    while (R.plan && R.spawnIdx < R.plan.q.length && R.plan.q[R.spawnIdx].t <= R.nightT) { const e = R.plan.q[R.spawnIdx++]; if (e.boss) spawnBoss(R.plan.fac, R.lanes[e.lane]); else spawnMon(e.type, R.lanes[e.lane], e.elite); }
     nightEnv(dt);
     if (R.spawnIdx >= R.plan.q.length && !R.monsters.some(m => !m.dead)) winWave();
     else if (R.phaseT <= 0) { toast('⏱️ Hết giờ — quái còn lại rút lui'); winWave(true); }
@@ -1515,8 +1609,59 @@ function vis(o) { o.t0 = R.time; o.until = R.time + o.dur; R.vis.push(o); }
 function burst(c, x, y, n = 10) { if (R.pe[c]) R.pe[c].explode(n, x, y); }
 function floatText(x, y, str, color = '#fff', size = 14) {
   const t = R.floats.find(f => !f.visible); if (!t) return;
-  t.setText(str).setColor(color).setFontSize(size).setPosition(x, y).setVisible(true).setAlpha(1);
+  t.setText(str).setColor(color).setFontSize(size).setPosition(x, y).setVisible(true).setAlpha(1).setScale(size >= 16 ? 1.6 : 1);
+  if (size >= 16) S.tweens.add({ targets: t, scale: 1, duration: 160, ease: 'Back.Out' });   // số lớn nảy ra
   S.tweens.add({ targets: t, y: y - 30, alpha: 0, duration: 800, onComplete: () => t.setVisible(false) });
+}
+// ---------- Cảm giác đánh: khựng hình & rung (có giới hạn tần suất) ----------
+function hitstop(t) { R.hitstop = Math.max(R.hitstop || 0, t); }
+function shake(ms, k, key = 'any', gap = .25) { R.shakeT = R.shakeT || {}; if ((R.shakeT[key] || -9) + gap > R.time) return; R.shakeT[key] = R.time; S.cameras.main.shake(ms, k); }
+function deathPop(m) { const gh = S.add.image(m.x, m.y, m.spr.texture.key).setScale(m.spr.scaleX).setFlipX(m.spr.flipX).setDepth(m.spr.depth).setTintFill(0xffffff); S.tweens.add({ targets: gh, scale: gh.scaleX * 1.45, alpha: 0, duration: 220, onComplete: () => gh.destroy() }); }
+
+// ---------- Boss ----------
+function spawnBoss(fac, lane) {
+  const B = BOSSES[fac], m = spawnMon(B.base, lane, false), hpM = m.maxHp / m.d.hp;   // giữ hệ số máu theo wave/độ khó
+  Object.assign(m, { boss: true, elite: true, name: B.n, phase: 1, slamT: 4, cast: null, stealth: false, shield: 0, rng: 34, size: BOSS.scale, spd: BOSS.spd, arm: BOSS.arm, mr: BOSS.mr, as: BOSS.as });
+  m.hp = m.maxHp = BOSS.hp * hpM; m.dmg = BOSS.dmg * (1 + .06 * G.wave) * Math.sqrt(diffObj().mult);
+  m.spr.setScale(BOSS.scale).setAlpha(1);
+  m.aura = S.add.image(m.x, m.y, 'ring').setTint(0xff3b30).setScale(1.25).setDepth(9);
+  m.lbl = S.add.text(m.x, m.y - 62, '👑', { fontFamily: 'Arial', fontSize: '22px' }).setOrigin(.5).setDepth(900);
+  toast(`👑 ${B.n} xuất hiện!`); sfx('boss'); shake(500, .01, 'boss', 0); Music.set('boss');
+  return m;
+}
+function bossPhase(m) {   // gọi sau mỗi lần trúng đòn: 66% → giai đoạn 2, 33% → giai đoạn 3
+  const f = m.hp / m.maxHp; if (!(m.phase === 1 && f < .66) && !(m.phase === 2 && f < .33)) return;
+  m.phase++; m.spd *= 1.25; m.as *= 1.2;
+  toast(`👑 ${m.name} nổi giận! Giai đoạn ${m.phase}`); sfx('boss'); shake(350, .009, 'boss', 0); burst('red', m.x, m.y, 40);
+  const units = FACTIONS[m.f].units.filter(u => MONS[u].minW <= G.wave && u !== BOSSES[m.f].base);
+  for (let i = 0; i < 2 + m.phase; i++) spawnMon(pick(units.length ? units : FACTIONS[m.f].units), m.lane, false, { x: m.x, y: m.y, s: Math.max(0, m.s - rnd(20, 80)) });
+}
+function slamTarget(m) {   // tướng gần nhất → tòa (nếu sát) → lính triệu hồi
+  let best = null, bd = 260;
+  for (const rt of R.heroRT.values()) if (!rt.dead) { const d = Math.hypot(rt.x - m.x, rt.y - m.y); if (d < bd) { bd = d; best = rt; } }
+  if (best) return best;
+  if (Math.hypot(R.tower.x - m.x, R.tower.y - m.y) < 260) return R.tower;
+  return R.allies.find(a => !a.dead && Math.hypot(a.x - m.x, a.y - m.y) < 200) || null;
+}
+// trả true khi boss đang vận chiêu (đứng yên)
+function bossUpdate(m, dt) {
+  if (m.cast) { m.cast.t -= dt; if (m.cast.t <= 0) { const c = m.cast; m.cast = null; bossSlam(m, c); m.slamT = BOSS.slamCd / (m.phase >= 3 ? 1.5 : 1); } return true; }
+  m.slamT -= dt; if (m.slamT > 0) return false;
+  const t = slamTarget(m); if (!t) { m.slamT = 1; return false; }
+  m.cast = { x: t.x, y: t.y, r: BOSS.slamR * (m.phase >= 2 ? 1.2 : 1), t: BOSS.slamT, max: BOSS.slamT, m };
+  R.warns.push(m.cast); sfx('warn'); floatText(m.x, m.y - 76, '⚠️ Đập Đất!', '#ff5252', 16);
+  return true;
+}
+function bossSlam(m, c) {
+  R.warns = R.warns.filter(w => w !== c);
+  burst('red', c.x, c.y, 40); vis({ type: 'ring', x: c.x, y: c.y, r0: 10, r1: c.r, color: 0xff3b30, dur: .4 }); shake(260, .012, 'slam', 0); sfx('boom'); hitstop(.08);
+  for (const rt of R.heroRT.values()) if (!rt.dead && Math.hypot(rt.x - c.x, rt.y - c.y) < c.r) damageHero(rt, rt.st.hp * .35 + m.dmg, m);   // né ra khỏi vòng là thoát
+  for (const a of R.allies.slice()) if (!a.dead && Math.hypot(a.x - c.x, a.y - c.y) < c.r) damageAlly(a, a.maxHp * .5);
+  if (Math.hypot(R.tower.x - c.x, R.tower.y - c.y) < c.r + CONFIG.TOWER.r) towerTakeDamage(m.dmg * 3, m);
+}
+function chainZap(m) {   // Sét Báo Thù: nảy 3 quái gần nhất
+  let prev = m; const hit = new Set([m.id]), dmg = 30 * (1 + .08 * G.wave) * (1 + M.spell);
+  for (let i = 0; i < 3; i++) { const o = inRange(prev.x, prev.y, 150, false).find(x => !hit.has(x.id)); if (!o) break; hit.add(o.id); vis({ type: 'line', x1: prev.x, y1: prev.y, x2: o.x, y2: o.y, w: 3, color: 0x74b9ff, dur: .2 }); setTimeoutGame(.05 * (i + 1), () => dealDamage(o, dmg, { dt: 'magic', zap: 1 })); prev = o; }
 }
 const buffSum = k => { let v = 0; for (const b of R.buffs) if (b.until > R.time && b.b[k]) v += b.b[k]; return v; };
 const isVis = m => !m.stealth || m.revealT > R.time || M.reveal || Math.hypot(m.x - R.tower.x, m.y - R.tower.y) < 100;
@@ -1563,19 +1708,28 @@ function spawnMon(type, lane, elite, o = {}) {
 }
 function killMon(m, o = {}) {
   if (m.dead) return; m.dead = true;
+  if (!o.silent) deathPop(m);
   m.spr.destroy(); if (m.aura) m.aura.destroy(); if (m.lbl) m.lbl.destroy();
   R.monsters = R.monsters.filter(x => x !== m);
+  if (m.boss) { R.warns = R.warns.filter(w => w.m !== m); if (G.phase === 'night') Music.set('night'); }
   if (o.silent) return;
   burst(m.f === 'zombie' ? 'green' : m.f === 'cybot' ? 'blue' : m.f === 'alien' ? 'purple' : 'brown', m.x, m.y, m.elite ? 30 : 10);
+  if (m.boss) {   // phần thưởng hạ boss
+    G.res.dia += 10; G.res.core += 1; G.res.gold += 10; R.kcGain = (R.kcGain || 0) + 10; addWeapon(rollWeaponId(Math.random() < .5 ? 1 : 2));
+    floatText(m.x, m.y - 60, '🏆 +10 💎 +10 💰 +1 🔋', '#ffd54f', 18); toast(`🏆 Hạ gục ${m.name}! Nhận vũ khí + 10💎 + 10💰 + 1🔋`);
+    burst('gold', m.x, m.y, 60); vis({ type: 'ring', x: m.x, y: m.y, r0: 20, r1: 220, color: 0xffd54f, dur: .7 }); hitstop(.3); shake(600, .015, 'bossKill', 0); sfx('star');
+    R.bossKilled = true;
+  } else if (m.elite) { hitstop(.06); shake(140, .005, 'elite', .3); vis({ type: 'ring', x: m.x, y: m.y, r0: 10, r1: 70, color: 0xffd54f, dur: .35 }); }
+  if (M.chain && !o.zap && Math.random() < M.chain) chainZap(m);
   R.kills = (R.kills || 0) + 1; G.kills++;
   const cf = G.cardFlags.curse ? 2 : 1;
   // hồi sinh
-  if (!m.revived && !o.noRevive && ((m.d.revive && Math.random() < m.d.revive) || (G.mut.revive && Math.random() < .1))) {
+  if (!m.revived && !m.boss && !o.noRevive && ((m.d.revive && Math.random() < m.d.revive) || (G.mut.revive && Math.random() < .1))) {
     const pos = { x: m.x, y: m.y, s: m.s }; setTimeoutGame(1.5, () => { if (G.phase !== 'night') return; const n = spawnMon(m.type, m.lane, false, pos); n.hp = n.maxHp = m.maxHp * .5; n.revived = true; floatText(pos.x, pos.y - 20, 'Hồi sinh!', '#8bc34a', 12); });
   }
   // rơi đồ
-  if (m.elite) { const kc = rint(3, 5) * cf; G.res.dia += kc; R.kcGain = (R.kcGain || 0) + kc; floatText(m.x, m.y - 30, `+${kc} 💎`, '#74b9ff', 16); if (Math.random() < .05) { addWeapon(rollWeaponId(Math.random() < .6 ? 0 : 1)); toast('🎁 Elite rơi vũ khí!'); } if (Math.random() < .35) { G.items.push(pick(Object.keys(ITEMS))); toast('🎁 Elite rơi trang bị tướng'); } }
-  else if (Math.random() < .005) { addWeapon(rollWeaponId(0)); toast('🎁 Quái rơi vũ khí Thường!'); }
+  if (m.elite && !m.boss) { const kc = rint(3, 5) * cf; G.res.dia += kc; R.kcGain = (R.kcGain || 0) + kc; floatText(m.x, m.y - 30, `+${kc} 💎`, '#74b9ff', 16); if (Math.random() < .05) { addWeapon(rollWeaponId(Math.random() < .6 ? 0 : 1)); toast('🎁 Elite rơi vũ khí!'); } if (Math.random() < .35) { G.items.push(pick(Object.keys(ITEMS))); toast('🎁 Elite rơi trang bị tướng'); } }
+  else if (!m.elite && Math.random() < .005) { addWeapon(rollWeaponId(0)); toast('🎁 Quái rơi vũ khí Thường!'); }
   if (m.f === 'cybot' && Math.random() < (ZONE().fx === 'ruins' ? .25 : .06)) { G.res.core++; floatText(m.x, m.y - 20, '+1 🔋', '#00e5ff'); }
   if (G.civ === 'esp' && Math.random() < .05) spawnAlly('spain', R.tower.x + rnd(-40, 40), R.tower.y + 50, 15);
   for (const rt of R.heroRT.values()) if (rt.h.id === 'oda' && Math.hypot(rt.x - m.x, rt.y - m.y) < 260) G.odaStacks = Math.min(30, (G.odaStacks || 0) + 1);
@@ -1591,32 +1745,39 @@ function dealDamage(m, amt, o = {}) {
   else if (dt === 'fire') { d *= 100 / (100 + m.arm); if (R.weather === 'rain') d *= .7; if (m.f === 'zombie') d *= 1.4; if (m.oiled > R.time) d *= 1.2; }
   if (o.aoe && m.f === 'zombie') d *= 1.25;
   if (m.elite) d *= 1 + M.elite + (o.hero && o.hero.h.id === 'mehmed' ? .5 : 0);
+  if (m.boss) d *= 1 + M.boss;   // ô "Sát thương boss" trên Bảng chỉ số
   if (M.revealDmg && m.stealth) d *= 1 + M.revealDmg;
   if (m.affix === 'thorns' && o.hero) damageHero(o.hero, d * .1, null);
   if (o.aoe || o.reveal) m.revealT = R.time + 3;
   if (m.shield > 0) { const a = Math.min(m.shield, d); m.shield -= a; d -= a; }
   m.hp -= d;
   if (o.hero && o.hero.h.id === 'ragnar') o.hero.hp = Math.min(o.hero.st.hp, o.hero.hp + d * .15);
-  if (o.crit) floatText(m.x, m.y - 24, Math.round(d) + '!', '#ffeb3b', 15); else if (o.show) floatText(m.x, m.y - 20, Math.round(d), '#ffffff', 12);
+  if (o.hero && M.vamp && !o.hero.dead) o.hero.hp = Math.min(o.hero.st.hp, o.hero.hp + d * M.vamp);
+  if (o.crit) { floatText(m.x, m.y - 26, Math.round(d) + '!', d >= 60 ? '#ff9f1a' : '#ffeb3b', d >= 60 ? 20 : 16); if (d >= 40) { shake(70, .002, 'crit', .3); sfx('crit'); } }
+  else if (o.show) floatText(m.x, m.y - 20, Math.round(d), '#ffffff', 12);
   m.flash = .08;
-  if (M.ksExec && m.hp > 0 && m.hp < m.maxHp * .1) { m.hp = 0; floatText(m.x, m.y - 30, 'Kết liễu', '#ff5252', 12); }
+  if (M.critNova && o.crit && !o.nova) { for (const x of inRange(m.x, m.y, 60, false)) if (x !== m) dealDamage(x, d * .4, { dt, aoe: 1, nova: 1 }); vis({ type: 'ring', x: m.x, y: m.y, r0: 8, r1: 60, color: 0xffeb3b, dur: .25 }); }
+  if (M.ksExec && !m.boss && m.hp > 0 && m.hp < m.maxHp * .1) { m.hp = 0; floatText(m.x, m.y - 30, 'Kết liễu', '#ff5252', 12); }
+  if (M.upExec && !m.elite && m.hp > 0 && m.hp < m.maxHp * M.upExec) { m.hp = 0; floatText(m.x, m.y - 30, '☠️', '#ff5252', 14); }
+  if (m.boss && m.hp > 0) bossPhase(m);
   if (m.hp <= 0) killMon(m, o);
   return d;
 }
 function applySlow(m, p, dur) { p *= m.f === 'beast' ? 1.5 : 1; if (p >= m.slowP || m.slowT < R.time) { m.slowP = Math.min(.8, p); m.slowT = R.time + dur; } }
-function applyStun(m, dur) { dur *= (1 + M.cc) * (m.f === 'alien' ? 1.5 : 1); m.stun = Math.max(m.stun, dur); }
-function applyRoot(m, dur) { m.root = Math.max(m.root, dur * (1 + M.cc)); }
+function applyStun(m, dur) { dur *= (1 + M.cc) * (m.f === 'alien' ? 1.5 : 1) * (m.boss ? BOSS.cc : 1); m.stun = Math.max(m.stun, dur); }
+function applyRoot(m, dur) { m.root = Math.max(m.root, dur * (1 + M.cc) * (m.boss ? BOSS.cc : 1)); }
 function knock(m, px) { if (m.lane) m.s = Math.max(0, m.s - px * (m.elite ? .4 : 1)); }
 
 function towerTakeDamage(d, m) {
-  let x = d * (1 - M.dmgRed) * (m && m.d.wall ? m.d.wall : 1);
+  let x = d * (1 - M.dmgRed) * (m && m.d.wall ? m.d.wall : 1) * (m && m.boss ? 1 - M.bossRed : 1);
   x *= 100 / (100 + towerArmor() * 2);
   if (m && m.rng > 60) x *= 1 - buffSum('tMres');
   if (R.towerShield > 0) { const a = Math.min(R.towerShield, x); R.towerShield -= a; x -= a; if (R.towerShield <= 0 && hasW('dshield') && hasW('dshield').star >= 3) { for (const mm of inRange(R.tower.x, R.tower.y, 160, false)) applyStun(mm, 1); vis({ type: 'ring', x: R.tower.x, y: R.tower.y, r0: 30, r1: 160, color: 0x74b9ff, dur: .4 }); } }
   G.tower.hp -= x; R.towerHit = .15;
+  if (x >= 25) shake(90, .003, 'tower', .4);
   if (m && M.reflect > 0) dealDamage(m, d * M.reflect, { dt: 'true' });
   if (G.tower.hp <= 0) {
-    if (M.ksUnbreak && !R.unbreakUsed) { R.unbreakUsed = true; G.tower.hp = towerMaxHp() * .2; toast('🏰 Thành Bất Khả: tòa trụ lại với 20% HP!'); }
+    if ((M.ksUnbreak || M.phoenix) && !R.unbreakUsed) { R.unbreakUsed = true; G.tower.hp = towerMaxHp() * (M.phoenix ? .3 : .2); toast(M.phoenix ? '🔥 Phượng Hoàng: tòa hồi sinh với 30% HP!' : '🏰 Thành Bất Khả: tòa trụ lại với 20% HP!'); burst('orange', R.tower.x, R.tower.y, 40); hitstop(.15); }
     else { G.tower.hp = 0; loseWave(); }
   }
 }
@@ -1624,10 +1785,11 @@ function monUpdate(m, dt) {
   if (m.dead) return;
   if (m.flash > 0) { m.flash -= dt; m.spr.setTintFill(0xffffff); if (m.flash <= 0) m.spr.clearTint(); }
   if (m.burn && m.burn.until > R.time) { m.burn.tick -= dt; if (m.burn.tick <= 0) { m.burn.tick = .5; dealDamage(m, m.burn.dps * .5, { dt: 'fire' }); if (m.dead) return; } }
-  if ((m.d.regen || m.affix === 'regen') && m.hp < m.maxHp) m.hp = Math.min(m.maxHp, m.hp + m.maxHp * .012 * dt);
+  if (((m.d.regen && !m.boss) || m.affix === 'regen') && m.hp < m.maxHp) m.hp = Math.min(m.maxHp, m.hp + m.maxHp * .012 * dt);
   if (m.armRedT < R.time) m.armRed = 0;
   m.atkCd -= dt;
   if (m.stun > 0) { m.stun -= dt; drawMon(m); return; }
+  if (m.boss && bossUpdate(m, dt)) { drawMon(m); return; }   // đang vận chiêu: đứng yên
   // làm chậm môi trường
   let env = 0; const fx = ZONE().fx;
   if (fx === 'swamp') env += .15; if (fx === 'snow') env += .1;
@@ -1658,7 +1820,7 @@ function monUpdate(m, dt) {
   const p = lanePos(m.lane, m.s); m.x = p.x + m.ox; m.y = p.y + m.oy; m.spr.setFlipX(Math.cos(p.ang) < 0);
   drawMon(m);
 }
-function drawMon(m) { m.spr.setPosition(m.x, m.y).setDepth(10 + m.y / 10); if (m.stealth) m.spr.setAlpha(isVis(m) ? .75 : .25); if (m.aura) m.aura.setPosition(m.x, m.y + 4); if (m.lbl) m.lbl.setPosition(m.x, m.y - 30); }
+function drawMon(m) { m.spr.setPosition(m.x, m.y).setDepth(10 + m.y / 10); if (m.stealth) m.spr.setAlpha(isVis(m) ? .75 : .25); if (m.aura) m.aura.setPosition(m.x, m.y + 4); if (m.lbl) m.lbl.setPosition(m.x, m.y - (m.boss ? 62 : 30)); }
 function blocker(m) {
   const reach = m.rng + 12 * m.size;
   if (!m.fly || m.rng > 60) {
@@ -1691,6 +1853,7 @@ function damageHero(rt, d, m) {
   if (rt.h.id === 'saladin' && Math.random() < .2) { floatText(rt.x, rt.y - 30, 'Né', '#fff', 11); return; }
   if (rt.immT > R.time || rt.legT > 0) return;
   d *= 100 / (100 + rt.st.arm * 2); if (rt.h.id === 'yisun' && m && m.rng > 60) d *= .7;
+  if (m && m.boss) d *= 1 - M.bossRed;
   if (rt.shield > 0) { const a = Math.min(rt.shield, d); rt.shield -= a; d -= a; }
   rt.hp -= d; rt.hitT = .1;
   if (rt.hp <= 0) {
@@ -1962,6 +2125,7 @@ function shoot(key, from, target, speed, onHit, o = {}) {
   let p = R.projPool.find(q => !q.active && q.texture.key === key);
   if (!p) { p = S.add.image(0, 0, key).setDepth(750); R.projPool.push(p); }
   p.setActive(true).setVisible(true).setPosition(from.x, from.y);
+  p.done = 0;   // đạn lấy lại từ pool: xóa cờ "đã xong" của lần bắn trước, nếu không sẽ bị bỏ cập nhật và đứng im trên màn hình
   p.tgt = target; p.tx = target.x; p.ty = target.y; p.speed = speed; p.onHit = onHit; p.lob = o.lob; p.sx = from.x; p.sy = from.y; p.t = 0; p.dur = Math.max(.15, Math.hypot(target.x - from.x, target.y - from.y) / speed);
   R.projs.push(p);
 }
@@ -2010,10 +2174,12 @@ function combatUpdate(dt) {
     else if (v.type === 'cone') { g.fillStyle(v.color, .35 * a); g.slice(v.x, v.y, v.len, v.a - v.half, v.a + v.half); g.fillPath(); }
   }
   R.vis = R.vis.filter(v => !v.dead);
+  // vòng cảnh báo chiêu boss: viền đỏ + phần tô lớn dần đến lúc nổ
+  for (const w of R.warns) { const k = 1 - w.t / w.max; g.fillStyle(0xff1744, .12 + .2 * k); g.fillCircle(w.x, w.y, w.r * k); g.lineStyle(3, 0xff1744, .6 + .4 * Math.abs(Math.sin(R.time * 12))); g.strokeCircle(w.x, w.y, w.r); }
   // thanh máu
   const b = S.barG; b.clear();
   const bar = (x, y, w, f, c, sh) => { b.fillStyle(0x000000, .6); b.fillRect(x - w / 2 - 1, y - 1, w + 2, 5); b.fillStyle(c); b.fillRect(x - w / 2, y, w * clamp(f, 0, 1), 3); if (sh > 0) { b.fillStyle(0x74b9ff); b.fillRect(x - w / 2, y - 3, w * clamp(sh, 0, 1), 2); } };
-  for (const m of R.monsters) if (m.hp < m.maxHp || m.elite) bar(m.x, m.y - 18 * m.size - 4, m.elite ? 34 : 22, m.hp / m.maxHp, m.elite ? 0xffd54f : 0xe74c3c, m.shield / m.maxHp);
+  for (const m of R.monsters) if (m.hp < m.maxHp || m.elite) bar(m.x, m.y - 18 * m.size - 4, m.boss ? 64 : m.elite ? 34 : 22, m.hp / m.maxHp, m.boss ? 0xff3b30 : m.elite ? 0xffd54f : 0xe74c3c, m.shield / m.maxHp);
   for (const rt of R.heroRT.values()) { if (!rt.dead) bar(rt.x, rt.y - (rt.barDY || 32), 34, rt.hp / rt.st.hp, 0x2ecc71, rt.shield / rt.st.hp); if (rt.cast) { b.fillStyle(0xffd54f); b.fillRect(rt.x - 17, rt.y + 18, 34 * (1 - rt.cast.t / .5), 3); } }
   for (const a of R.allies) if (a.hp < a.maxHp) bar(a.x, a.y - 18, 18, a.hp / a.maxHp, 0x81ecec);
   for (const f of R.fences) bar(f.x, f.y - 22, 30, f.hp / (WEAPON.fence.hp * STAR_MULT[f.star] * (1 + .1 * G.wave)), 0xa1887f);
@@ -2052,7 +2218,7 @@ addEventListener('resize', fitWrap);
 
 // ---------- Menu / thiết lập trận ----------
 UI.showTitle = () => {
-  $('hud').classList.add('hide'); closePanel(); applyTheme(null); Tut.hide();
+  $('hud').classList.add('hide'); closePanel(); applyTheme(null); Tut.hide(); Music.set(null);
   const p = profile(), auto = loadGame('auto');
   menu(`<h1>THÀNH TRÌ VĂN MINH</h1><div class="sub">Civilization Defense — bản test 5 wave đầu · ${CONFIG.VERSION}</div>
   <div class="mbtns"><button class="big ${p.tutDone ? '' : 'blink'}" data-act="mTut">🎓 Chơi hướng dẫn</button><button class="big" data-act="mNew">⚔️ Trận mới</button>
@@ -2063,7 +2229,7 @@ UI.showTitle = () => {
 function menu(html) { $('menu').innerHTML = `<div class="mbox">${html}</div>`; $('menu').classList.remove('hide'); }
 function hideMenu() { $('menu').classList.add('hide'); }
 function helpHTML() {
-  return `<div class="help"><h3>Vòng lặp 1 wave = 1 ngày</h3><ol><li><b>Bình minh</b>: chọn 1/3 Thẻ Sự Kiện.</li><li><b>Ban ngày (90s)</b>: roll tướng (R), thợ rèn vũ khí (S), bảng chỉ số (C), xây máy khai thác + kéo băng chuyền về sát tường thành (B), click mỏ để dân thu hoạch tay.</li><li><b>Hoàng hôn (15s)</b>: xem dự báo (mũi tên đỏ), đặt tối đa 3 tướng ngoài thành, đặt bẫy, chỉnh số lính trên tòa.</li><li><b>Ban đêm</b>: quái tự tấn công. Bạn bấm Q/W (skill tướng đang chọn), F (skill tòa), chuột phải để điều khiển tướng.</li><li><b>Kết wave</b>: vàng (+lãi, chuỗi thắng), +1 điểm chỉ số, trừ lúa nuôi quân.</li></ol>
+  return `<div class="help"><h3>Vòng lặp 1 wave = 1 ngày</h3><ol><li><b>Bình minh</b>: chọn 1/3 Thẻ Sự Kiện.</li><li><b>Ban ngày (90s)</b>: roll tướng (R), thợ rèn vũ khí (S), bảng chỉ số (C), xây máy khai thác + kéo băng chuyền về sát tường thành (B), click mỏ để dân thu hoạch tay.</li><li><b>Hoàng hôn (15s)</b>: xem dự báo (mũi tên đỏ), đặt tối đa 3 tướng ngoài thành, đặt bẫy, chỉnh số lính trên tòa.</li><li><b>Ban đêm</b>: quái tự tấn công. Bạn bấm Q/W (skill tướng đang chọn), F (skill tòa), chuột phải để điều khiển tướng.</li><li><b>Kết wave</b>: vàng (+lãi, chuỗi thắng), +1 điểm chỉ số, trừ lúa nuôi quân, <b>chọn 1/3 nâng cấp vĩnh viễn</b>.</li><li><b>👑 Boss mỗi 5 wave</b>: 3 giai đoạn, chiêu Đập Đất báo trước bằng vòng đỏ — chuột phải đưa tướng ra khỏi vòng để né.</li></ol>
   <h3>Phím tắt</h3><table class="keys"><tr><td>R</td><td>Shop tướng (ngày)</td><td>S</td><td>Thợ Rèn (ngày)</td></tr><tr><td>C</td><td>Bảng chỉ số 150 ô</td><td>B</td><td>Xây dựng / băng chuyền</td></tr><tr><td>M</td><td>Bản đồ 3×3</td><td>I</td><td>Thông tin tổng</td></tr><tr><td>1/2/3</td><td>Chọn tướng</td><td>Q / W</td><td>Skill buff lính / diện rộng</td></tr><tr><td>F</td><td>Skill Tòa</td><td>Space</td><td>Camera về thành</td></tr><tr><td>Del</td><td>Bán tướng đang chọn</td><td>Esc</td><td>Menu / lưu / tải</td></tr><tr><td>Enter</td><td>Sẵn sàng (bỏ qua pha)</td><td>←↑→↓ / kéo chuột</td><td>Di chuyển camera, lăn chuột zoom</td></tr><tr><td>F4</td><td>Tốc độ x1/x2/x4</td><td>F2</td><td>(Test) +tài nguyên</td></tr></table>
   <p>Thắng bản test: sống sót hết wave 5. Thua 1 wave = -1 mạng (5 mạng), wave chơi lại với quái -15% HP.</p></div>`;
 }
@@ -2121,7 +2287,7 @@ function startGameScene() { const sc = game.scene; if (sc.isActive('Title')) sc.
 
 // ---------- HUD ----------
 UI.showHUD = () => { $('hud').classList.remove('hide'); hideMenu(); applyTheme(G.civ); Tut.drawn = -1; UI.dirty = true; };
-UI.onPhase = p => { UI.dirty = true; if (p === 'night' && UI.panel && ['shop', 'smith', 'build', 'stats'].includes(UI.panel)) closePanel(); };
+UI.onPhase = p => { UI.dirty = true; Music.set(Music.forPhase(p)); if (p === 'night' && UI.panel && ['shop', 'smith', 'build', 'stats'].includes(UI.panel)) closePanel(); };
 UI.refresh = force => { UI.dirty = true; if (force) render(); };
 UI.openShopAuto = () => { if (!UI.panel || UI.panel === 'cards') { openPanel('shop'); } };
 UI.closeDayPanels = () => { if (['shop', 'smith', 'stats'].includes(UI.panel)) closePanel(); };
@@ -2150,12 +2316,16 @@ function renderFast() {
     q.dataset.cd = rt.cdQ > 0 ? Math.ceil(rt.cdQ) : ''; w.dataset.cd = rt.cdW > 0 ? Math.ceil(rt.cdW) : '';
   }
   const fb = $('fBtn'); if (fb) fb.dataset.cd = R.tcd > 0 ? Math.ceil(R.tcd) : '';
+  // thanh máu boss
+  const boss = R.monsters && R.monsters.find(m => m.boss && !m.dead);
+  $('bossBar').classList.toggle('hide', !boss);
+  if (boss) { $('bossName').textContent = '👑 ' + boss.name; $('bossPh').textContent = '◆'.repeat(boss.phase) + '◇'.repeat(3 - boss.phase) + `  ${Math.ceil(boss.hp)}/${Math.ceil(boss.maxHp)}`; $('bossHp').style.width = clamp(boss.hp / boss.maxHp, 0, 1) * 100 + '%'; }
   // tài nguyên
   for (const k of ['gold', 'dia', 'core', ...RES_KEYS]) { const e = $('r_' + k); if (e) e.textContent = fmt(G.res[k]); }
   for (const k of RES_KEYS) { const e = $('rr_' + k); if (e) e.textContent = R.rates && R.rates[k] ? '+' + Math.round(R.rates[k]) + '/ph' : ''; }
   if (G.phase === 'night' && R.plan) { const we = WEATHERS.find(w => w.id === R.weather); $('forecast').innerHTML = `<span data-tip="${esc(FACTIONS[R.plan.fac].n)} — quái còn lại">${FI[R.plan.fac]} 👾 <b>${alive().length + (R.plan.q.length - R.spawnIdx)}</b></span> <span data-tip="${esc(we.n)}">${we.i}</span>`; }
 }
-function hudSig() { if (!G) return ''; return JSON.stringify([G.phase, G.wave, G.lives, G.statPts, G.card, R.tool, G.freeTraps, G.riceDebt > 0, G.heroes.map(h => [h.uid, h.star, h.loc, h.eq.length, h.auto]), G.wslots.map(w => w && w.uid + ':' + w.star), G.wstore.map(w => w.uid + ':' + w.star), G.ground.length, G.tower.age, G.tower.building, R.sel, UI.panel, R.plan && R.plan.n, G.res.gold, G.res.dia, G.res.core, G.items.length, G.shop.slots.map(s => s.id + s.bought + s.locked), G.wshop.offers.length, CONFIG.SPEED]); }
+function hudSig() { if (!G) return ''; return JSON.stringify([G.phase, G.wave, G.lives, G.statPts, G.card, R.tool, G.freeTraps, G.riceDebt > 0, G.heroes.map(h => [h.uid, h.star, h.loc, h.eq.length, h.auto]), G.wslots.map(w => w && w.uid + ':' + w.star), G.wstore.map(w => w.uid + ':' + w.star), G.ground.length, G.tower.age, G.tower.building, R.sel, UI.panel, R.plan && R.plan.n, G.res.gold, G.res.dia, G.res.core, G.items.length, G.shop.slots.map(s => s.id + s.bought + s.locked), G.wshop.offers.length, CONFIG.SPEED, G.upg]); }
 function render() {
   UI.dirty = false; if (!G) return; UI.sig = hudSig();
   // top
@@ -2165,13 +2335,15 @@ function render() {
   $('btnReady').textContent = G.phase === 'day' ? '🌇 ▶' : '🌙 ▶';
   $('btnReady').dataset.tip = G.phase === 'day' ? 'Sẵn sàng → sang Hoàng hôn (Enter)' : 'Bắt đầu đêm (Enter)';
   const fac = FAC_ORDER[(G.wave - 1) % 4];
-  if (G.phase !== 'night') $('forecast').innerHTML = `<span data-tip="Dự báo đêm nay: ${esc(FACTIONS[fac].n)}\nMạnh: ${esc(FACTIONS[fac].strong)}\nYếu: ${esc(FACTIONS[fac].weak)}">🔭 <b style="color:${FACTIONS[fac].c};font-size:16px">${FI[fac]}</b>${R.plan ? ` 👾<b>${R.plan.n}</b> ➶<b>${R.plan.lanes.length}</b>` : ''}</span>`;
+  if (G.phase !== 'night') $('forecast').innerHTML = `<span data-tip="Dự báo đêm nay: ${esc(FACTIONS[fac].n)}\nMạnh: ${esc(FACTIONS[fac].strong)}\nYếu: ${esc(FACTIONS[fac].weak)}">🔭 <b style="color:${FACTIONS[fac].c};font-size:16px">${FI[fac]}</b>${R.plan ? ` 👾<b>${R.plan.n}</b> ➶<b>${R.plan.lanes.length}</b>` : ''}</span>${G.wave % BOSS.every === 0 ? ` <b class="warn blink" data-tip="Đêm nay có BOSS: ${esc(BOSSES[fac].n)} — né vòng đỏ Đập Đất bằng chuột phải">👑 BOSS</b>` : ''}`;
   $('resBox').innerHTML = `<span data-tip="Vàng: roll tướng, mua XP shop">💰<b id="r_gold"></b></span><span data-tip="Kim cương: roll vũ khí phòng thủ">💎<b id="r_dia"></b></span><span data-tip="Lõi Năng Lượng: nâng vũ khí 3★">🔋<b id="r_core"></b></span>` +
     RES_KEYS.map(k => `<span class="res" data-tip="${RES[k].n} (tối đa ${CONFIG.CAP}, dư bán vàng ${M.ksGranary ? 5 : 10}:1)">${RES[k].i}<b id="r_${k}"></b><small id="rr_${k}"></small></span>`).join('') + (G.riceDebt > 0 ? `<span class="warn" data-tip="Thiếu lúa nuôi quân: toàn quân -20% ATK đến khi bù đủ">⚠️ nợ ${Math.ceil(G.riceDebt)}🌾</span>` : '');
   $('btnSpeed').textContent = 'x' + CONFIG.SPEED; $('btnMute').textContent = SFX.on ? '🔊' : '🔇';
   $('cardChip').innerHTML = G.card ? `<span class="${CARD[G.card].gold ? 'gold' : ''}" data-tip="${esc(CARD[G.card].n + ': ' + CARD[G.card].d)}">${CGI[CARD[G.card].g] || '🃏'} ${CARD[G.card].n}</span>` : '';
   $('cardChip').innerHTML += R.tool ? `<span class="tool">${TOOLS[R.tool].i} ${TOOLS[R.tool].n}: ${TOOLS[R.tool].hint} <button data-act="tool" data-arg="${R.tool}" data-tip="Thoát công cụ (Esc)">✕</button></span>` : '';
   if (G.freeTraps > 0) $('cardChip').innerHTML += `<span data-tip="Bẫy chông miễn phí">🪤 ×${G.freeTraps}</span>`;
+  const ugs = Object.entries(G.upg || {}).filter(([k, n]) => n && UPG[k]);
+  if (ugs.length) $('cardChip').innerHTML += `<span class="upgchip">${ugs.map(([k, n]) => `<i data-tip="${esc(`${UPG[k].n} ×${n}: ${UPG[k].d}`)}">${UPG[k].i}${n > 1 ? `<sub>${n}</sub>` : ''}</i>`).join('')}</span>`;
   if (G.phase === 'place') $('cardChip').innerHTML = '<span class="tool">📍 Click 1 ô vàng trên map để đặt Tòa Văn Minh</span>';
   // minimap
   $('minimap').innerHTML = ZONES.map((z, i) => `<div class="mm ${i === G.zone ? 'ours' : ''} ${z.boss ? 'boss' : ''}" style="${z.boss ? '' : `background:#${z.g1.toString(16).padStart(6, '0')}`}" data-tip="${esc(z.dir + ': ' + z.name + ' — ' + z.desc)}">${z.boss ? '💀' : i === G.zone ? '🏰' : ''}</div>`).join('') + `<div class="mmi" data-act="panel" data-arg="map" data-tip="Bản đồ (M) — Dời Đô sau ${10 - ((G.wave - 1) % 10)} ngày">🗺️ ⏳${10 - ((G.wave - 1) % 10)}</div>`;
@@ -2313,7 +2485,7 @@ const PANELS = {
         <tr><td>Thưởng sản lượng</td><td>${RES_KEYS.map(k => `${RES[k].i}+${Math.round((M.resB[k] + M.harv) * 100)}%`).join(' ')}</td><td>Vàng wave tới (ước)</td><td>${waveGold().total} (lãi ${waveGold().interest}, chuỗi ${Math.min(3, G.streak)})</td></tr></table>`;
     } else {
       const c = civ();
-      h += civCard(c, true) + `<h3>Mutator</h3><p>${Object.keys(G.mut).filter(k => G.mut[k]).map(k => MUTATORS.find(m => m.id === k).name).join(', ') || 'Không'}</p><h3>Thẻ đã chọn</h3><p>${G.cardsSeen.map(id => CARD[id].n).join(' → ') || '—'}</p><h3>Ngọc Thiên Thạch (ngoài phạm vi 5 wave)</h3>${METEORS.map(m => `<div class="sm">${m.n}: rơi wave ${m.w} — ${m.d}</div>`).join('')}`;
+      h += civCard(c, true) + `<h3>🏆 Nâng cấp chiến thắng</h3><div class="wl">${Object.entries(G.upg || {}).filter(([k, n]) => n && UPG[k]).map(([k, n]) => `<div class="sm">${UPG[k].i} <b>${UPG[k].n}</b> ×${n} <small>${UPG[k].d}</small></div>`).join('') || '<p class="note">Chưa có — thắng 1 đêm để chọn</p>'}</div><h3>Mutator</h3><p>${Object.keys(G.mut).filter(k => G.mut[k]).map(k => MUTATORS.find(m => m.id === k).name).join(', ') || 'Không'}</p><h3>Thẻ đã chọn</h3><p>${G.cardsSeen.map(id => CARD[id].n).join(' → ') || '—'}</p><h3>Ngọc Thiên Thạch (ngoài phạm vi 5 wave)</h3>${METEORS.map(m => `<div class="sm">${m.n}: rơi wave ${m.w} — ${m.d}</div>`).join('')}`;
     }
     return ['ℹ️ Thông tin tổng (I)', h];
   },
@@ -2348,6 +2520,10 @@ UI.showCards = (cards, rep) => {
   let r = '';
   if (rep) r = rep.win ? `<div class="rep" style="font-size:15px">✅ 🌊${rep.wave}${rep.timeUp ? ' ⏱️' : ''} &nbsp; <span data-tip="Quái đã diệt">💀 ${rep.kills}</span> &nbsp; <span data-tip="Vàng: gốc ${rep.gold.base} + lãi ${rep.gold.interest} + chuỗi thắng ${rep.gold.streak}">💰 +${rep.gold.total}</span> &nbsp; <span data-tip="+1 điểm Bảng chỉ số (C)">📊 +1</span>${rep.kc ? ` &nbsp; 💎 +${rep.kc}` : ''} &nbsp; <span data-tip="Lúa nuôi quân mỗi đêm">🍚 −${rep.upkeep} 🌾</span> ${rep.hungry ? '<b class="warn" data-tip="Thiếu lúa: toàn quân -20% ATK">⚠️ -20% ⚔️</b>' : ''}</div>` : `<div class="rep bad">💔 −1 ❤ (wave ${rep.wave}) — chơi lại với quái −15% HP.</div>`;
   $('ptitle').innerHTML = `🌅 Bình minh — ngày ${G.wave}`;
+  if (R.upgOffer && R.upgOffer.length) {   // bước 1: phần thưởng chiến thắng (nâng cấp vĩnh viễn)
+    $('pbody').innerHTML = `${r}<h3>🏆 Phần thưởng chiến thắng — chọn 1 nâng cấp vĩnh viễn (cộng dồn cả trận)</h3><div class="cards upgs">${R.upgOffer.map(id => { const u = UPG[id], n = (G.upg || {})[id] || 0; return `<div class="card upg r${u.rar}" data-act="upg" data-arg="${id}"><small>${UPG_RAR[u.rar].n}</small><i class="ci">${u.i}</i><b>${u.n}</b><p>${u.d}</p><em class="stk">${n ? `Đang có ×${n} → ×${n + 1}` : 'Mới'} · tối đa ${u.max}</em></div>`; }).join('')}</div><p class="note">Sau đó chọn Thẻ Sự Kiện của ngày.</p>`;
+    UI.panel = 'cards'; $('panel').className = 'p-cards'; $('panel').classList.remove('hide'); return;
+  }
   $('pbody').innerHTML = `${r}<h3>Chọn 1 Thẻ Sự Kiện ${G.wave % 5 === 0 ? '(có thẻ Vàng hiếm!)' : ''}</h3><div class="cards">${cards.map(id => { const c = CARD[id]; return `<div class="card ${c.gold ? 'gold' : ''}" data-act="card" data-arg="${id}"><small>${c.g}</small><i class="ci">${CGI[c.g] || '🃏'}</i><b>${c.n}</b><p>${c.d}</p></div>`; }).join('')}</div>`;
   UI.panel = 'cards'; $('panel').className = 'p-cards'; $('panel').classList.remove('hide');
 };
@@ -2358,7 +2534,7 @@ UI.showLose = () => {
   $('panel').className = 'p-cards'; $('panel').classList.remove('hide');
 };
 UI.showEnd = win => {
-  closePanel(); $('hud').classList.add('hide'); Tut.hide();
+  closePanel(); $('hud').classList.add('hide'); Tut.hide(); Music.set(null);
   menu(`<h1>${win ? '🏆 HOÀN THÀNH BẢN TEST!' : '☠️ THẤT BẠI'}</h1><div class="sub">${win ? `Bạn đã sống sót 5 wave đầu với ${civ().name}` : `Hết mạng ở wave ${G.wave}`}</div>
   <table class="info"><tr><td>Văn minh</td><td>${civ().name}</td><td>Độ khó</td><td>${diffObj().name}</td></tr><tr><td>Quái đã diệt</td><td>${G.kills}</td><td>Mạng còn</td><td>${G.lives}</td></tr><tr><td>Thời đại tòa</td><td>${CONFIG.AGES[G.tower.age].name}</td><td>Tướng</td><td>${G.heroes.map(h => HERO[h.id].name + ' ' + h.star + '★').join(', ')}</td></tr><tr><td>Vũ khí</td><td colspan="3">${allWeapons().map(w => WEAPON[w.id].n + ' ' + w.star + '★').join(', ') || '—'}</td></tr></table>
   <p>Danh Vọng nhận: <b>+${win ? 10 * G.wave + G.lives * 5 : 5 * G.wave}</b></p><div class="mbtns"><button class="big" data-act="mNew">⚔️ Trận mới</button><button data-act="quit">🏠 Menu</button></div>`);
@@ -2377,52 +2553,97 @@ function lanePoint() { if (!R.lanes) return null; const l = R.lanes[R.plan ? R.p
 const blocked = () => UI.panel && !['hero', 'build'].includes(UI.panel);   // bảng đang che bản đồ
 const buildTgt = tool => R.tool === tool ? null : UI.panel === 'build' ? `#pbody [data-act="tool"][data-arg="${tool}"]` : blocked() ? '#pclose' : '#btnRow [data-arg="build"]';
 const closeOther = keep => () => { if (UI.panel && UI.panel !== keep) { closePanel(); render(); } };
+// Mỗi bước: go() trả về cú bấm KẾ TIẾP { t: selector | Element | {x,y,r} trên map, x: lời dặn, keys: phím được phép, btn: 2 = chuột phải }.
+// Trong lúc bước đang chạy, mọi cú bấm/phím khác đều bị chặn (xem Tut.allow).
+const $q = s => document.querySelector(s);
+const closeBtn = (what) => ({ t: '#pclose', x: `Bấm <b>✕</b> để đóng ${what || 'bảng này'} trước.` });
+const panelBtn = (p, why) => ({ t: `#btnRow [data-arg="${p}"]`, x: `Bấm nút <b>${PANEL_I[p][0]}</b> ở góc phải dưới (phím <kbd>${PANEL_I[p][1]}</kbd>) ${why}.`, keys: [PANEL_I[p][1].toLowerCase()] });
+// mở bảng Xây → chọn công cụ → (trả null khi công cụ đã chọn)
+function buildFlow(tool, why) {
+  if (R.tool === tool) return null;
+  if (UI.panel === 'build') return { t: `#pbody [data-act="tool"][data-arg="${tool}"]`, x: `Chọn <b>${TOOLS[tool].i} ${TOOLS[tool].n}</b> ${why}.` };
+  if (UI.panel) return closeBtn();
+  return panelBtn('build', 'để mở bảng Xây dựng');
+}
+function firstBuyBtn() { return [...document.querySelectorAll('#pbody .hc button[data-act="buy"]')].find(b => { const sl = G.shop.slots[+b.dataset.arg]; return sl && sl.id && HERO[sl.id].cost <= G.res.gold; }) || $q('#pbody [data-act="roll"]'); }
+function firstCell() { return $q('#pbody .tier:not(.locked) .cell.syn:not(.lv)') || $q('#pbody .tier:not(.locked) .cell'); }
+function beltEnd() { const m = tutMine(); if (!m) return null; const e = G.ext[m.id]; const p = e ? e.path[e.path.length - 1] : [m.x, m.y]; return { x: tc(p[0]), y: tc(p[1]), r: 30 }; }
 const TUT = [
-  { w: 1, ph: 'place', i: '📍', t: 'Đặt Tòa Văn Minh', x: 'Bấm vào 1 <b>vòng tròn vàng</b> trên bản đồ để xây thành của bạn. Kéo chuột để di chuyển bản đồ, lăn chuột để phóng to.',
-    tgt: () => { const c = S.cameras.main.midPoint, d = s => Math.hypot(tc(s.x) - c.x, tc(s.y) - c.y), s = R.map.spots.slice().sort((a, b) => d(a) - d(b))[0]; return { x: tc(s.x), y: tc(s.y), r: 28 }; }, done: () => !!G.towerTile },
-  { w: 1, ph: 'dawn', i: '🃏', t: 'Thẻ sự kiện', x: 'Mỗi bình minh chọn <b>1 trong 3 thẻ</b>. Thẻ cho lợi thế trong ngày hôm đó.', tgt: () => '#pbody .cards', done: () => !!G.card },
-  { w: 1, ph: 'day', i: '💰', t: 'Tài nguyên', x: '💰 Vàng mua tướng · 💎 Kim cương mua vũ khí · 🌾🪵🪨⛓️ để xây dựng.<br>Mẹo: <b>rê chuột</b> lên bất kỳ biểu tượng nào để xem giải thích.', tgt: () => '#resBox', manual: true, enter: closeOther() },
-  { w: 1, ph: 'day', i: '⏸️', t: 'Ban ngày = chuẩn bị', x: 'Ban ngày (90 giây) để mua tướng và xây dựng. Trong hướng dẫn, <b>đồng hồ tạm dừng</b> chờ bạn làm xong.', tgt: () => '#phaseBox', manual: true },
-  { w: 1, ph: 'day', i: '🎲', t: 'Mua tướng', x: 'Bấm nút <b>Mua</b> của 1 tướng bất kỳ. Tướng mới vào <b>Hàng chờ</b> ở dưới cùng.', enter: () => { if (UI.panel !== 'shop') openPanel('shop'); },
-    tgt: () => UI.panel === 'shop' ? '#pbody .shop' : blocked() ? '#pclose' : '#btnRow [data-arg="shop"]', done: () => G.heroes.reduce((s, h) => s + h.star, 0) >= 2 },
-  { w: 1, ph: 'day', i: '🚩', t: 'Đưa tướng ra trận', x: 'Đóng bảng ✕ → bấm 1 tướng ở <b>Hàng chờ</b> → <b>🚩 Đặt ra ngoài thành</b> → bấm lên bản đồ gần thành.',
-    tgt: () => R.placing ? { x: R.tower.x + 90, y: R.tower.y + 70, r: 26 } : UI.panel === 'hero' ? '#pbody [data-act="place"]' : UI.panel ? '#pclose' : '#bench .bch:not(.empty)', done: () => fieldHeroes().length >= 1 },
-  { w: 1, ph: 'day', i: '🧺', t: 'Thu hoạch tay', x: 'Bấm vào <b>mỏ</b> đang được chỉ: dân sẽ chạy ra thu hoạch một ít tài nguyên.', pan: () => mineW(tutMine()),
-    tgt: () => blocked() ? '#pclose' : mineW(tutMine()), done: () => Tut.f.harvest },
-  { w: 1, ph: 'day', i: '⛏️', t: 'Máy khai thác', x: 'Mở <b>🔨 Xây</b> (phím <kbd>B</kbd>) → chọn <b>⛏️</b> → bấm vào mỏ. Máy sẽ khai thác liên tục.', pan: () => mineW(tutMine()),
-    tgt: () => buildTgt('extr') || mineW(tutMine()), done: () => Object.keys(G.ext).length >= 1 },
-  { w: 1, ph: 'day', i: '🛤️', t: 'Băng chuyền', x: 'Chọn <b>🛤️</b>, <b>giữ chuột trái</b> trên máy khai thác rồi <b>kéo</b> về khung xanh quanh thành, thả ra. Tài nguyên sẽ chạy về kho.', pan: () => mineW(tutMine()),
-    tgt: () => buildTgt('belt') || mineW(tutMine()), done: () => R.map.mines.some(m => { const s = extStatus(m); return s && s.ok; }) },
-  { w: 1, ph: 'day', i: '🌇', t: 'Sẵn sàng!', x: 'Chuẩn bị xong. Bấm <b>🌇 ▶</b> (hoặc <kbd>Enter</kbd>) để sang Hoàng hôn.', enter: () => { if (R.tool) World.setTool(R.tool); closeOther()(); }, tgt: () => '#btnReady', done: () => PH_ORD[G.phase] > 2 },
-  { w: 1, ph: 'dusk', i: '🪤', t: 'Bẫy chông', x: '<b style="color:#ff6b6b">Mũi tên đỏ</b> là đường quái sẽ đi. Mở 🔨 → chọn <b>🪤</b> → bấm lên con đường đó.', enter: () => { if (G.res.wood < 15) G.res.wood += 15; }, pan: lanePoint,
-    tgt: () => buildTgt('trap') || lanePoint(), done: () => G.traps.length >= 1 },
-  { w: 1, ph: 'dusk', i: '🌙', t: 'Bắt đầu đêm', x: 'Bấm <b>🌙 ▶</b> để quái kéo tới. Lính trên tòa và tướng sẽ <b>tự đánh</b>.', enter: () => { if (R.tool) World.setTool(R.tool); closeOther()(); }, tgt: () => '#btnReady', done: () => PH_ORD[G.phase] > 3 },
-  { w: 1, ph: 'night', i: '💥', t: 'Chiêu tướng', x: 'Khi quái tới gần, bấm <b>💥</b> (phím <kbd>W</kbd>) để tướng tung chiêu diện rộng.', need: () => fieldHeroes().length, tgt: () => '#fieldRow .port .sw', done: () => Tut.f.w },
-  { w: 1, ph: 'night', i: '🏛️', t: 'Tuyệt kỹ Tòa', x: 'Bấm <b>nút tròn lớn</b> (phím <kbd>F</kbd>) để Tòa Văn Minh tung tuyệt kỹ của nền văn minh bạn.', tgt: () => '#fBtn', done: () => Tut.f.f },
-  { w: 1, ph: 'night', i: '🖱️', t: 'Ra lệnh cho tướng', x: 'Bấm tên tướng để chọn, rồi <b>chuột phải</b> lên bản đồ để ra lệnh di chuyển/tấn công.', need: () => fieldHeroes().length, tgt: () => '#fieldRow .port .pt', done: () => Tut.f.order },
-  { w: 1, ph: 'night', i: '🛡️', t: 'Giữ thành!', x: 'Diệt hết quái để thắng đêm. Thanh máu ở trên là máu Tòa — về 0 là mất 1 ❤.', tgt: () => '#towerBar', manual: true },
-  { w: 2, ph: 'dawn', i: '📜', t: 'Báo cáo đêm qua', x: 'Thắng đêm được <b>💰 vàng</b> và <b>📊 +1 điểm</b>, nhưng tốn <b>🌾 lúa</b> nuôi quân. Chọn 1 thẻ để sang ngày mới.', tgt: () => '#pbody .rep', done: () => !!G.card },
-  { w: 2, ph: 'day', i: '📊', t: 'Bảng chỉ số', x: 'Bạn có điểm chỉ số! Mở <b>📊</b> (phím <kbd>C</kbd>) và bấm 1 ô tầng T1 để nâng. Ô viền đôi hợp với văn minh của bạn (+20%).', enter: closeOther('stats'),
-    tgt: () => UI.panel === 'stats' ? '#pbody .board' : UI.panel ? '#pclose' : '#btnRow [data-arg="stats"]', done: () => Object.values(G.spentPts).some(v => v > 0) },
-  { w: 2, ph: 'day', i: '⚒️', t: 'Vũ khí phòng thủ', x: 'Mở <b>⚒️</b> (phím <kbd>S</kbd>), bấm <b>💎 Roll</b> rồi <b>Lấy</b> 1 vũ khí. Vũ khí tự gắn lên tòa và bắn quái.', enter: () => { closeOther('smith')(); if (G.res.dia < wRollCost()) G.res.dia = wRollCost(); },
-    tgt: () => UI.panel === 'smith' ? (G.wshop.offers.length ? '#pbody [data-act="wtake"]' : '#pbody [data-act="wroll"]') : UI.panel ? '#pclose' : '#btnRow [data-arg="smith"]', done: () => allWeapons().length >= 1 },
-  { w: 2, ph: 'day', i: '🗡️', t: 'Trang bị cho tướng', x: 'Bấm <b>ⓘ</b> trên thẻ tướng → <b>🗡️ Kiếm Sắt → gắn</b>. 2 món cơ bản trên cùng 1 tướng sẽ ghép thành món mạnh hơn.', enter: () => { closeOther('hero')(); if (!G.items.length && !G.heroes.some(h => h.eq.length)) G.items.push('sword'); },
-    tgt: () => UI.panel === 'hero' ? '#pbody [data-act="equip"]' : UI.panel ? '#pclose' : fieldHeroes().length ? '#fieldRow .port .mini' : '#bench .bch:not(.empty)', done: () => G.heroes.some(h => h.eq.length) },
-  { w: 2, ph: 'day', i: '⭐', t: 'Ghép sao', x: '2 tướng <b>giống nhau 1★</b> tự ghép thành <b>2★</b> (mạnh ×1.25); 2 bản 2★ → 3★. Quà hướng dẫn: tặng bạn 1 bản sao tướng chủ lực!', enter: () => { closeOther()(); addHero(civ().key, 1, 0); World.syncHeroes(); render(); },
-    tgt: () => '#center', manual: true },
-  { w: 2, ph: 'day', i: '🏛️', t: 'Nâng thời đại', x: 'Quà: <b>+200 mỗi tài nguyên</b>. Mở <b>🔨</b> → bấm <b>▲ Lên Cổ đại</b>. Tòa trâu hơn, thêm ô vũ khí, ra tướng xịn hơn.', enter: () => { closeOther('build')(); for (const k of RES_KEYS) gain(k, 200); },
-    tgt: () => UI.panel === 'build' ? '#pbody [data-act="age"]' : UI.panel ? '#pclose' : '#btnRow [data-arg="build"]', done: () => !!G.tower.building || G.tower.age >= 2 },
-  { w: 2, ph: 'day', i: '🎓', t: 'Bạn đã sẵn sàng!', x: 'Mẹo cuối: 2–3 tướng <b>cùng biểu tượng nhóm</b> ngoài trận được +10%/+25% sức mạnh. Đặt tướng gần mỏ xa để đuổi trinh sát. Sống sót đến wave 5 nhé!', manual: true },
+  { w: 1, ph: 'place', i: '📍', t: 'Đặt Tòa Văn Minh',
+    go: () => { const c = S.cameras.main.midPoint, d = s => Math.hypot(tc(s.x) - c.x, tc(s.y) - c.y), s = R.map.spots.slice().sort((a, b) => d(a) - d(b))[0]; return { t: { x: tc(s.x), y: tc(s.y), r: 28 }, x: 'Chào mừng! Bấm vào <b>vòng tròn vàng đang sáng</b> để xây thành của bạn ở đó.' }; },
+    done: () => !!G.towerTile },
+  { w: 1, ph: 'dawn', i: '🃏', t: 'Thẻ sự kiện', go: () => ({ t: '#pbody .cards', x: 'Mỗi sáng bạn được chọn <b>1 trong 3 thẻ</b>, cho lợi thế suốt ngày hôm đó. Bấm vào <b>1 thẻ bất kỳ</b>.' }), done: () => !!G.card },
+  { w: 1, ph: 'day', i: '💰', t: 'Tài nguyên', manual: true, enter: closeOther(), go: () => ({ t: '#resBox', x: '💰 Vàng: mua tướng · 💎 Kim cương: mua vũ khí · 🌾🪵🪨⛓️: xây dựng.<br>Bấm <b>Tiếp ▶</b> để đi tiếp.' }) },
+  { w: 1, ph: 'day', i: '⏸️', t: 'Ban ngày = chuẩn bị', manual: true, go: () => ({ t: '#phaseBox', x: 'Ban ngày có 90 giây để chuẩn bị. Trong hướng dẫn, <b>đồng hồ đứng yên</b> chờ bạn. Bấm <b>Tiếp ▶</b>.' }) },
+  { w: 1, ph: 'day', i: '🎲', t: 'Mua tướng', enter: () => { if (UI.panel !== 'shop') { closePanel(); openPanel('shop'); } },
+    go: () => UI.panel !== 'shop' ? (UI.panel ? closeBtn() : panelBtn('shop', 'để mở bảng tướng')) : { t: firstBuyBtn(), x: 'Đây là bảng tướng. Bấm nút <b>Mua</b> đang sáng để mua tướng này.' },
+    done: () => G.heroes.reduce((s, h) => s + h.star, 0) >= 2 },
+  { w: 1, ph: 'day', i: '🚩', t: 'Đưa tướng ra trận',
+    go: () => R.placing ? { t: { x: R.tower.x + 90, y: R.tower.y + 70, r: 26 }, x: 'Bấm vào <b>vòng sáng trên bản đồ</b> để đặt tướng đứng canh ở đó.' }
+      : UI.panel === 'hero' ? { t: '#pbody [data-act="place"]', x: 'Bấm <b>🚩 Đặt ra ngoài thành</b>.' }
+      : UI.panel ? closeBtn('bảng tướng')
+      : { t: '#bench .bch:not(.empty)', x: 'Tướng mới nằm ở <b>Hàng chờ</b> (dưới cùng). Bấm vào <b>ô tướng đang sáng</b>.' },
+    done: () => fieldHeroes().length >= 1 },
+  { w: 1, ph: 'day', i: '🧺', t: 'Thu hoạch tay', pan: () => mineW(tutMine()),
+    go: () => blocked() ? closeBtn() : { t: mineW(tutMine()), x: `Bấm vào <b>mỏ ${RES[tutMine().type].n} đang sáng</b>: dân sẽ chạy ra thu hoạch một ít tài nguyên.` },
+    done: () => Tut.f.harvest },
+  { w: 1, ph: 'day', i: '⛏️', t: 'Máy khai thác', pan: () => mineW(tutMine()),
+    go: () => buildFlow('extr', 'để đặt máy khai thác') || { t: mineW(tutMine()), x: 'Bấm vào <b>mỏ đang sáng</b> để đặt máy. Máy sẽ khai thác liên tục cả ngày.' },
+    done: () => Object.keys(G.ext).length >= 1 },
+  { w: 1, ph: 'day', i: '🛤️', t: 'Băng chuyền', pan: () => mineW(tutMine()),
+    go: () => buildFlow('belt', 'để kéo băng chuyền') || { t: beltEnd(), x: '<b>Giữ chuột trái</b> trên máy khai thác đang sáng, <b>kéo</b> về <b>khung xanh quanh thành</b> rồi thả. Tài nguyên sẽ chạy về kho.' },
+    done: () => R.map.mines.some(m => { const s = extStatus(m); return s && s.ok; }) },
+  { w: 1, ph: 'day', i: '🌇', t: 'Sẵn sàng!', enter: () => { if (R.tool) World.setTool(R.tool); closeOther()(); },
+    go: () => UI.panel ? closeBtn() : { t: '#btnReady', x: 'Chuẩn bị xong! Bấm nút <b>🌇 ▶</b> trên cùng (hoặc <kbd>Enter</kbd>) để sang Hoàng hôn.', keys: ['Enter'] },
+    done: () => PH_ORD[G.phase] > 2 },
+  { w: 1, ph: 'dusk', i: '🪤', t: 'Bẫy chông', enter: () => { if (G.res.wood < 15) G.res.wood += 15; }, pan: lanePoint,
+    go: () => buildFlow('trap', 'để đặt bẫy') || { t: lanePoint(), x: '<b style="color:#ff6b6b">Mũi tên đỏ</b> là đường quái sắp đi. Bấm vào <b>vòng sáng trên đường</b> để đặt bẫy.' },
+    done: () => G.traps.length >= 1 },
+  { w: 1, ph: 'dusk', i: '🌙', t: 'Bắt đầu đêm', enter: () => { if (R.tool) World.setTool(R.tool); closeOther()(); },
+    go: () => UI.panel ? closeBtn() : { t: '#btnReady', x: 'Bấm <b>🌙 ▶</b> (hoặc <kbd>Enter</kbd>) để quái kéo tới. Lính trên tòa và tướng sẽ tự đánh.', keys: ['Enter'] },
+    done: () => PH_ORD[G.phase] > 3 },
+  { w: 1, ph: 'night', i: '💥', t: 'Chiêu tướng', need: () => fieldHeroes().length,
+    go: () => ({ t: '#fieldRow .port .sw', x: 'Quái đang tới! Bấm <b>💥</b> trên thẻ tướng (phím <kbd>W</kbd>) để tung chiêu diện rộng.', keys: ['w'] }), done: () => Tut.f.w },
+  { w: 1, ph: 'night', i: '🏛️', t: 'Tuyệt kỹ Tòa',
+    go: () => ({ t: '#fBtn', x: 'Bấm <b>nút tròn lớn</b> (phím <kbd>F</kbd>) để Tòa Văn Minh tung tuyệt kỹ.', keys: ['f'] }), done: () => Tut.f.f },
+  { w: 1, ph: 'night', i: '🖱️', t: 'Ra lệnh cho tướng', need: () => fieldHeroes().length,
+    go: () => { const rt = R.sel && World.heroRT(R.sel); if (!rt || rt.dead) return { t: '#fieldRow .port .pt', x: 'Bấm vào <b>tên tướng</b> (phím <kbd>1</kbd>) để chọn tướng.', keys: ['1'] };
+      return { t: { x: rt.x + 90, y: rt.y + 30, r: 26 }, x: 'Bấm <b>CHUỘT PHẢI</b> vào <b>vòng sáng</b> để ra lệnh tướng chạy tới đó.', btn: 2 }; },
+    done: () => Tut.f.order },
+  { w: 1, ph: 'night', i: '🛡️', t: 'Giữ thành!', manual: true, go: () => ({ t: '#towerBar', x: 'Thanh này là máu Tòa — về 0 là mất 1 ❤. Bấm <b>Tiếp ▶</b> rồi xem quân ta tự diệt quái.' }) },
+  { w: 2, ph: 'dawn', i: '🏆', t: 'Nâng cấp chiến thắng',
+    go: () => ({ t: '#pbody .upgs', x: 'Thắng đêm! Chọn <b>1 trong 3 nâng cấp vĩnh viễn</b> (cộng dồn cả trận). Viền xanh = Hiếm, tím = Sử thi.' }),
+    done: () => !(R.upgOffer && R.upgOffer.length) },
+  { w: 2, ph: 'dawn', i: '📜', t: 'Thẻ của ngày 2', go: () => ({ t: '#pbody .cards', x: 'Dòng trên là báo cáo: 💰 vàng và 📊 điểm nhận được, 🌾 lúa nuôi quân. Giờ bấm <b>1 thẻ sự kiện</b>.' }), done: () => !!G.card },
+  { w: 2, ph: 'day', i: '📊', t: 'Bảng chỉ số', enter: closeOther('stats'),
+    go: () => UI.panel === 'stats' ? { t: firstCell(), x: 'Bấm vào <b>ô đang sáng</b> để nâng chỉ số. Ô viền đôi hợp với văn minh của bạn (+20%).' } : UI.panel ? closeBtn() : panelBtn('stats', 'để mở Bảng chỉ số'),
+    done: () => Object.values(G.spentPts).some(v => v > 0) },
+  { w: 2, ph: 'day', i: '⚒️', t: 'Vũ khí phòng thủ', enter: () => { closeOther('smith')(); if (G.res.dia < wRollCost()) G.res.dia = wRollCost(); },
+    go: () => UI.panel !== 'smith' ? (UI.panel ? closeBtn() : panelBtn('smith', 'để mở Thợ Rèn'))
+      : G.wshop.offers.length ? { t: '#pbody [data-act="wtake"]', x: 'Bấm <b>Lấy</b> để nhận vũ khí. Vũ khí tự gắn lên tòa và bắn quái.' }
+      : { t: '#pbody [data-act="wroll"]', x: 'Bấm <b>💎 Roll</b> để xem 3 vũ khí ngẫu nhiên.' },
+    done: () => allWeapons().length >= 1 },
+  { w: 2, ph: 'day', i: '🗡️', t: 'Trang bị cho tướng', enter: () => { closeOther('hero')(); if (!G.items.length && !G.heroes.some(h => h.eq.length)) G.items.push('sword'); },
+    go: () => UI.panel === 'hero' ? { t: '#pbody [data-act="equip"]', x: 'Bấm <b>🗡️ Kiếm Sắt → gắn</b>. 2 món cơ bản trên cùng 1 tướng sẽ ghép thành món mạnh hơn.' }
+      : UI.panel ? closeBtn()
+      : fieldHeroes().length ? { t: '#fieldRow .port .mini', x: 'Bấm <b>ⓘ</b> trên thẻ tướng để xem chi tiết và trang bị.' } : { t: '#bench .bch:not(.empty)', x: 'Bấm vào <b>tướng ở Hàng chờ</b>.' },
+    done: () => G.heroes.some(h => h.eq.length) },
+  { w: 2, ph: 'day', i: '⭐', t: 'Ghép sao', manual: true, enter: () => { closeOther()(); addHero(civ().key, 1, 0); World.syncHeroes(); render(); },
+    go: () => ({ t: '#center', x: 'Quà: 1 bản sao tướng chủ lực! 2 tướng <b>giống nhau 1★</b> tự ghép thành <b>2★</b> (mạnh ×1.25); 2 bản 2★ → 3★. Bấm <b>Tiếp ▶</b>.' }) },
+  { w: 2, ph: 'day', i: '🏛️', t: 'Nâng thời đại', enter: () => { closeOther('build')(); for (const k of RES_KEYS) gain(k, 200); },
+    go: () => UI.panel === 'build' ? { t: '#pbody [data-act="age"]', x: 'Quà: <b>+200 mỗi tài nguyên</b>. Bấm <b>▲ Lên Cổ đại</b>: tòa trâu hơn, thêm ô vũ khí, ra tướng xịn hơn.' } : UI.panel ? closeBtn() : panelBtn('build', 'để mở bảng Xây dựng'),
+    done: () => !!G.tower.building || G.tower.age >= 2 },
+  { w: 2, ph: 'day', i: '🎓', t: 'Bạn đã sẵn sàng!', manual: true, go: () => ({ t: null, x: 'Mẹo: 2–3 tướng <b>cùng biểu tượng nhóm</b> ngoài trận được +10%/+25%. Wave 5 có <b>👑 BOSS</b> — thấy vòng đỏ thì chuột phải đưa tướng né ra. Từ giờ bạn được bấm tự do!' }) },
 ];
 const Tut = {
-  f: {}, drawn: -1,
+  f: {}, drawn: -1, cur: null,
   on: () => !!(G && G.tut && !G.tut.off && G.tut.i < TUT.length),
   step: () => Tut.on() ? TUT[G.tut.i] : null,
   live() { const s = Tut.step(); return s && s.w === G.wave && s.ph === G.phase ? s : null; },
   holds() { return !!Tut.live() && (G.phase === 'day' || G.phase === 'dusk'); },   // đồng hồ ngày/hoàng hôn đứng chờ
   flag(k) { if (Tut.on()) Tut.f[k] = true; },
-  next() { G.tut.i++; Tut.f = {}; sfx('star'); if (G.tut.i >= TUT.length) Tut.end(true); UI.refresh(); },
-  hide() { $('coach').classList.add('hide'); $('tutHi').classList.add('hide'); Tut.drawn = -1; },
+  next() { G.tut.i++; Tut.f = {}; Tut.cur = null; sfx('star'); if (G.tut.i >= TUT.length) Tut.end(true); UI.refresh(); },
+  hide() { $('coach').classList.add('hide'); $('tutHi').classList.add('hide'); Tut.drawn = -1; Tut.cur = null; },
   end(done) { if (G && G.tut) G.tut.off = true; Tut.hide(); const p = profile(); p.tutDone = true; saveProfile(p); if (done) toast('🎓 Hoàn thành hướng dẫn! Chúc bạn giữ thành thành công'); },
   update() {
     if (!Tut.on()) { if (Tut.drawn !== -1 || !$('coach').classList.contains('hide')) Tut.hide(); return; }
@@ -2430,7 +2651,7 @@ const Tut = {
     // bỏ bước đã lỡ pha, hoặc không làm được (vd. chưa có tướng ngoài trận)
     while (s && (G.wave > s.w || (G.wave === s.w && PH_ORD[G.phase] > PH_ORD[s.ph]) || (s.w === G.wave && s.ph === G.phase && s.need && !s.need()))) { G.tut.i++; Tut.f = {}; s = Tut.step(); }
     if (!s) return Tut.end(true);
-    if (!Tut.live()) return Tut.hide();
+    if (!Tut.live() || R.paused) return Tut.hide();
     if (G.tut.e !== G.tut.i) {
       G.tut.e = G.tut.i; s.enter && s.enter();
       const p = s.pan && s.pan(); if (p && R.tower && S) { const cam = S.cameras.main; cam.zoomTo(.85, 300); cam.pan((p.x + R.tower.x) / 2, (p.y + R.tower.y) / 2 + 60, 400); }
@@ -2439,23 +2660,25 @@ const Tut = {
     Tut.draw(s);
   },
   draw(s) {
-    const c = $('coach'), i = G.tut.i;
+    const c = $('coach'), i = G.tut.i, g = s.go ? s.go() : {};
     if (Tut.drawn !== i) {
-      Tut.drawn = i; c.classList.remove('hide'); c.classList.remove('tutDone'); void c.offsetWidth; c.classList.add('tutDone');
+      Tut.drawn = i; Tut.lastX = null; c.classList.remove('hide'); c.classList.remove('tutDone'); void c.offsetWidth; c.classList.add('tutDone');
       c.querySelector('.cIco').textContent = s.i === '🏛️' && s.ph === 'night' ? (TSI[G.civ] || s.i) : s.i;
-      c.querySelector('.cTitle').textContent = s.t; c.querySelector('.cText').innerHTML = s.x;
+      c.querySelector('.cTitle').textContent = s.t;
       c.querySelector('.cProg').textContent = `${i + 1}/${TUT.length}`;
       c.querySelector('.cBtns').innerHTML = (s.manual ? `<button class="big" data-act="tutNext">${i === TUT.length - 1 ? '🎓 Hoàn thành' : 'Tiếp ▶'}</button>` : `<button class="cSkip" data-act="tutNext">Bỏ qua bước này</button>`) + `<button class="cSkip" data-act="tutOff" style="margin-left:auto">Tắt hướng dẫn</button>`;
     }
-    // vị trí khung chỉ dẫn
-    const t = s.tgt ? s.tgt() : null, hi = $('tutHi'); let box = null;
-    if (typeof t === 'string') {
-      const el = document.querySelector(t);
-      if (el && el.getClientRects().length) { const r = el.getBoundingClientRect(), wr = $('wrap').getBoundingClientRect(), sc = UI.scale || 1; box = { x: (r.left - wr.left) / sc - 4, y: (r.top - wr.top) / sc - 4, w: r.width / sc + 8, h: r.height / sc + 8 }; }
+    if (g.x !== Tut.lastX) { Tut.lastX = g.x; c.querySelector('.cText').innerHTML = g.x || ''; c.classList.remove('tutDone'); void c.offsetWidth; c.classList.add('tutDone'); }
+    // khung chỉ dẫn: selector / Element trên HUD, hoặc vòng tròn trên map
+    const t = g.t, hi = $('tutHi'); let box = null, el = null;
+    if (typeof t === 'string' || t instanceof Element) {
+      el = typeof t === 'string' ? $q(t) : t;
+      if (el && el.getClientRects().length) { const r = el.getBoundingClientRect(), wr = $('wrap').getBoundingClientRect(), sc = UI.scale || 1; box = { x: (r.left - wr.left) / sc - 4, y: (r.top - wr.top) / sc - 4, w: r.width / sc + 8, h: r.height / sc + 8 }; } else el = null;
     } else if (t && S && S.cameras) {
       const cam = S.cameras.main, v = cam.worldView, z = cam.zoom, rr = (t.r || 30) * z;
-      box = { x: (t.x - v.x) * z - rr, y: (t.y - v.y) * z - rr, w: rr * 2, h: rr * 2, round: true };
+      box = { x: (t.x - v.x) * z - rr, y: (t.y - v.y) * z - rr, w: rr * 2, h: rr * 2, round: true, world: true };
     }
+    Tut.cur = { s, el, box, manual: !!s.manual, keys: g.keys || [], btn: g.btn || 0 };
     if (box) {
       hi.classList.remove('hide'); hi.classList.toggle('round', !!box.round); hi.classList.toggle('below', box.y < 60);
       Object.assign(hi.style, { left: box.x + 'px', top: box.y + 'px', width: box.w + 'px', height: box.h + 'px' });
@@ -2464,7 +2687,32 @@ const Tut = {
     const top = !!UI.panel; c.classList.toggle('top', top);
     c.classList.toggle('left', !top && !!box && box.x + box.w > 920 && box.y < 220);
   },
+  // Chặn mọi thao tác ngoài mục tiêu đang chỉ (trả true = cho phép)
+  allow(e) {
+    const cur = Tut.cur; if (!cur || !Tut.live()) return true;
+    if (e.target.closest && e.target.closest('#coach')) return true;
+    if (cur.manual) return false;
+    if (cur.el) return cur.el.contains(e.target);
+    if (cur.box && cur.box.world) {
+      if (e.target.tagName !== 'CANVAS') return false;
+      const wr = $('wrap').getBoundingClientRect(), sc = UI.scale || 1, x = (e.clientX - wr.left) / sc, y = (e.clientY - wr.top) / sc, b = cur.box;
+      const inside = Math.hypot(x - (b.x + b.w / 2), y - (b.y + b.h / 2)) <= b.w / 2 + 6;
+      return inside && ((e.button ?? 0) === cur.btn || e.type === 'contextmenu');
+    }
+    return true;   // không tìm thấy mục tiêu → không khóa để tránh kẹt
+  },
 };
+for (const ev of ['pointerdown', 'mousedown', 'touchstart', 'click', 'dblclick', 'contextmenu']) addEventListener(ev, e => {
+  if (Tut.allow(e)) return;
+  e.stopPropagation(); e.stopImmediatePropagation(); if (ev !== 'touchstart') e.preventDefault();
+  if (ev === 'pointerdown') { const hi = $('tutHi'); hi.classList.remove('nudge'); void hi.offsetWidth; hi.classList.add('nudge'); }
+}, { capture: true, passive: false });
+addEventListener('keydown', e => {   // phím: chỉ cho phép phím của bước hiện tại (+ mũi tên di chuyển camera)
+  const cur = Tut.cur; if (!cur || !Tut.live() || !G || !S) return;
+  const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+  if (k.startsWith('Arrow') || cur.keys.includes(k)) return;
+  e.stopImmediatePropagation(); e.preventDefault();
+}, { capture: true });
 Object.assign(A, {
   mTut: () => { UI.setup = { diff: 'normal', mut: {}, tut: true, showAll: true }; A.sCiv(); },
   tutNext: () => { if (Tut.on()) Tut.next(); },
@@ -2477,7 +2725,7 @@ Object.assign(A, {
   speed: () => { CONFIG.SPEED = CONFIG.SPEED >= 4 ? 1 : CONFIG.SPEED * 2; render(); },
   mute: () => { SFX.on = !SFX.on; render(); },
   escMenu: () => { World.pause(true); Tut.hide(); openPanel('esc'); },
-  resume: () => { closePanel(); World.pause(false); },
+  resume: () => { closePanel(); World.pause(false); if (G.phase === 'dawn' && R.waitCard) UI.showCards(R.cards, R.report); else if (G.phase === 'end' && G.lives > 0 && G.replay) UI.showLose(); },
   panel: p => { if (UI.panel === p) return closePanel(); if (['shop', 'smith'].includes(p) && !dayOnly()) return; if (['stats', 'build'].includes(p) && G.phase === 'night') return toast('Chỉ dùng được ban ngày'); openPanel(p); },
   hsel: u => World.select(+u), hq: u => World.castQ(+u), hw: u => World.castW(+u), f: () => World.castF(),
   hauto: u => { const h = G.heroes.find(x => x.uid === +u); h.auto = !h.auto; render(); },
@@ -2511,7 +2759,8 @@ Object.assign(A, {
   heal: n => { const need = Math.min(+n, towerMaxHp() - G.tower.hp), rice = Math.ceil(need / 6); if (need <= 0) return; const r = Math.min(rice, G.res.rice); G.res.rice -= r; G.tower.hp += r * 6; render(); },
   trade: a => { const [f, t] = a.split(':'); if (G.res[f] < 50) return toast('Không đủ ' + RES[f].n); G.res[f] -= 50; gain(t, 50); render(); },
   tab: t => { UI.tab = t; openPanel('info', t); },
-  card: id => { closePanel(); World.chooseCard(id); },
+  card: id => { if (R.upgOffer && R.upgOffer.length) return; closePanel(); World.chooseCard(id); },
+  upg: id => { if (!R.upgOffer || !R.upgOffer.includes(id)) return; pickUpgrade(id); R.upgOffer = G.pendUpg = null; UI.showCards(R.cards, R.report); render(); },
   lose: a => { closePanel(); if (a === 'stay') World.afterLose('stay'); else World.afterLose('move', +a); },
   save: s => { if (saveGame(s)) toast('Đã lưu ' + s); renderPanel(); },
   loadIn: s => { closePanel(); World.pause(false); A.mLoad(s); },
