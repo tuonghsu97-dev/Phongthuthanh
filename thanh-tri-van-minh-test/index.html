@@ -1487,9 +1487,27 @@ const buffSum = k => { let v = 0; for (const b of R.buffs) if (b.until > R.time 
 const isVis = m => !m.stealth || m.revealT > R.time || M.reveal || Math.hypot(m.x - R.tower.x, m.y - R.tower.y) < 100;
 const alive = () => R.monsters.filter(m => !m.dead);
 function inRange(x, y, r, visOnly = true) { return R.monsters.filter(m => !m.dead && (!visOnly || isVis(m)) && Math.hypot(m.x - x, m.y - y) <= r); }
-function firstTarget(x, y, r) { let best = null, bs = -1; for (const m of R.monsters) { if (m.dead || !isVis(m)) continue; const d = Math.hypot(m.x - x, m.y - y); if (d > r) continue; const prog = m.lane ? m.s / m.lane.total : 1 - d / 1000; if (prog > bs) { bs = prog; best = m; } } return best; }
+// spread: bỏ qua quái đã đủ đạn đang bay tới để giết (tránh dồn đạn dư vào 1 con)
+function firstTarget(x, y, r, spread) { if (spread === true) { const m = firstTarget(x, y, r, m => (m.pend || 0) < m.hp + m.shield); if (m) return m; } const ok = typeof spread === 'function' ? spread : null; let best = null, bs = -1; for (const m of R.monsters) { if (m.dead || !isVis(m) || (ok && !ok(m))) continue; const d = Math.hypot(m.x - x, m.y - y); if (d > r) continue; const prog = m.lane ? m.s / m.lane.total : 1 - d / 1000; if (prog > bs) { bs = prog; best = m; } } return best; }
 function nearestMon(x, y, r) { let best = null, bd = r; for (const m of R.monsters) { if (m.dead || !isVis(m)) continue; const d = Math.hypot(m.x - x, m.y - y); if (d < bd) { bd = d; best = m; } } return best; }
 function densest(x, y, reach, r) { let best = null, bc = 0; const list = inRange(x, y, reach); for (const m of list) { let c = 0; for (const o of list) if (Math.hypot(m.x - o.x, m.y - o.y) < r) c++; if (c > bc) { bc = c; best = m; } } return best ? { x: best.x, y: best.y, c: bc } : null; }
+// ---------- AI chọn mục tiêu: ưu tiên quái đe dọa thành + chia mục tiêu, không dồn hết vào 1 con ----------
+const sieging = m => !!m.lane && !m.scout && (m.rng > 60 ? Math.hypot(m.x - R.tower.x, m.y - R.tower.y) <= m.rng + CONFIG.TOWER.r : m.s >= m.lane.total - 2);
+function threatOf(m) { const dT = Math.hypot(m.x - R.tower.x, m.y - R.tower.y); return 1 + Math.max(0, 1 - dT / CONFIG.LEASH) * 3 + (sieging(m) ? 4 : 0) + (m.elite ? 1.5 : 0); }
+function claimsOn(m, self) { let c = 0; for (const o of R.heroRT.values()) if (o !== self && !o.dead && o.target === m) c++; for (const a of R.allies) if (a !== self && !a.dead && a.target === m) c += .5; return c; }
+function threatsNearTower() { return R.monsters.some(m => !m.dead && isVis(m) && (sieging(m) || Math.hypot(m.x - R.tower.x, m.y - R.tower.y) < CONFIG.HOME_R * 1.5)); }
+// u: tướng (rt) hoặc lính triệu hồi (a); reach: chỉ xét quái trong bán kính này quanh thành
+function pickTarget(u, reach) {
+  let best = null, bs = -1e9;
+  for (const m of R.monsters) {
+    if (m.dead || !isVis(m) || Math.hypot(m.x - R.tower.x, m.y - R.tower.y) > reach) continue;
+    const s = threatOf(m) / (1 + .8 * claimsOn(m, u)) - Math.hypot(m.x - u.x, m.y - u.y) / 220 + (m === u.target ? .5 : 0);
+    if (s > bs) { bs = s; best = m; }
+  }
+  return best;
+}
+// đổi mục tiêu định kỳ (0.4s) để không bám mãi 1 con khi thành đang bị đánh ở hướng khác
+function aiTarget(u, reach) { if (u.target && (u.target.dead || !isVis(u.target))) u.target = null; if (!u.target || !(u.retT > R.time)) { u.target = pickTarget(u, reach); u.retT = R.time + .4; } return u.target; }
 function busiestLane() { let best = R.lanes[0], bc = -1; for (const l of R.lanes) { const c = R.monsters.filter(m => m.lane === l && !m.dead).length; if (c > bc) { bc = c; best = l; } } return best; }
 
 // ---------- Quái ----------
@@ -1679,15 +1697,15 @@ function heroUpdate(rt, dt) {
     drawHero(rt); return;
   }
   const home = { x: h.x, y: h.y }, monsters = alive();
-  const nearTower = monsters.filter(m => Math.hypot(m.x - R.tower.x, m.y - R.tower.y) < CONFIG.HOME_R);
   if (rt.state === 'hold') {
-    const m = nearestMon(rt.x, rt.y, atkRange + 40);
-    if (m && Math.hypot(m.x - home.x, m.y - home.y) < 150) { if (!tryAttack(m)) moveTo(m.x, m.y, atkRange - 4); }
-    else { moveTo(home.x, home.y); if (G.phase === 'night' && monsters.some(isVis) && !inRange(home.x, home.y, 160).length) rt.state = 'support'; }
+    const m = nearestMon(rt.x, rt.y, atkRange + 40), towerHit = G.phase === 'night' && threatsNearTower();
+    // quái sát vị trí canh → đánh; thành đang bị đánh hoặc vị trí canh trống → đi hỗ trợ
+    if (m && !towerHit && Math.hypot(m.x - home.x, m.y - home.y) < 150) { rt.target = m; if (!tryAttack(m)) moveTo(m.x, m.y, atkRange - 4); }
+    else { moveTo(home.x, home.y); if (G.phase === 'night' && monsters.some(isVis) && (towerHit || !inRange(home.x, home.y, 160).length)) rt.state = 'support'; }
   } else if (rt.state === 'support') {
-    if (nearTower.length || !monsters.length || Math.hypot(rt.x - R.tower.x, rt.y - R.tower.y) > CONFIG.LEASH) rt.state = 'return';
+    if (!monsters.length || Math.hypot(rt.x - R.tower.x, rt.y - R.tower.y) > CONFIG.LEASH) rt.state = 'return';
     else {
-      let tgt = rt.target; if (!tgt || tgt.dead || !isVis(tgt)) { tgt = null; let bd = 1e9; for (const m of monsters) { if (!isVis(m)) continue; const dd = Math.hypot(m.x - R.tower.x, m.y - R.tower.y); if (dd < bd && Math.hypot(m.x - R.tower.x, m.y - R.tower.y) < CONFIG.LEASH) { bd = dd; tgt = m; } } rt.target = tgt; }
+      const tgt = aiTarget(rt, CONFIG.LEASH);
       if (!tgt) rt.state = 'return'; else if (!tryAttack(tgt)) moveTo(tgt.x, tgt.y, atkRange - 4);
     }
   } else { // return
@@ -1810,9 +1828,9 @@ function allyUpdate(a, dt) {
   if (a.until < R.time) { removeAlly(a); return; }
   a.atkCd -= dt;
   if (a.kind === 'militia' && !a.stealth && a.revealT < R.time) { a.stealth = true; a.spr.setAlpha(.45); }
-  const m = nearestMon(a.x, a.y, 260);
+  const m = aiTarget(a, 520);
   const spd = a.def.spd * dt;
-  if (m && Math.hypot(m.x - R.tower.x, m.y - R.tower.y) < 520) {
+  if (m) {
     const d = Math.hypot(m.x - a.x, m.y - a.y);
     if (d > a.def.rng + 8) { a.x += (m.x - a.x) / d * spd; a.y += (m.y - a.y) / d * spd; }
     else if (a.atkCd <= 0) {
@@ -1845,18 +1863,20 @@ function towerUpdate(dt) {
   while (R.solCd.length < G.soldiers) R.solCd.push(rnd(0, 1));
   for (let i = 0; i < G.soldiers; i++) {
     R.solCd[i] -= dt; if (R.solCd[i] > 0) continue;
-    const m = firstTarget(R.tower.x, R.tower.y, st.rng); if (!m) { R.solCd[i] = .2; continue; }
+    const m = firstTarget(R.tower.x, R.tower.y, st.rng, true); if (!m) { R.solCd[i] = .2; continue; }
     R.solCd[i] = 1 / st.rate * rnd(.9, 1.1); fireSoldier(st, m);
   }
   // tháp phụ
-  G.subs.forEach((s, i) => { R.subCd[i] = (R.subCd[i] || 0) - dt; if (R.subCd[i] > 0) return; const m = firstTarget(s.x, s.y, CONFIG.SUB.range * (1 + M.range)); if (!m) { R.subCd[i] = .25; return; } R.subCd[i] = 1 / CONFIG.SUB.rate; const dmg = CONFIG.SUB.dmg * (1 + .5 * (s.lvl - 1)) * (1 + M.atk) * (1 + .08 * (G.wave - 1)); shoot('p_bolt', { x: s.x, y: s.y - 40 }, m, 520, () => dealDamage(m, dmg, { dt: 'phys' })); });
+  G.subs.forEach((s, i) => { R.subCd[i] = (R.subCd[i] || 0) - dt; if (R.subCd[i] > 0) return; const m = firstTarget(s.x, s.y, CONFIG.SUB.range * (1 + M.range), true); if (!m) { R.subCd[i] = .25; return; } R.subCd[i] = 1 / CONFIG.SUB.rate; const dmg = CONFIG.SUB.dmg * (1 + .5 * (s.lvl - 1)) * (1 + M.atk) * (1 + .08 * (G.wave - 1)); shoot('p_bolt', { x: s.x, y: s.y - 40 }, m, 520, () => dealDamage(m, dmg, { dt: 'phys' })); });
   weaponsUpdate(dt);
 }
 function fireSoldier(st, m, extra) {
   const S0 = st.S0; R.shotN = (R.shotN || 0) + 1;
   const crit = Math.random() < st.crit; const dmg = st.dmg * (crit ? M.critMult : 1);
   const from = { x: R.tower.x + rnd(-18, 18), y: R.tower.y - 60 };
+  const est = dmg * .7; m.pend = (m.pend || 0) + est; // ước lượng sát thương sau giáp, để lính khác chọn con khác
   shoot('p_' + S0.proj, from, m, 480, () => {
+    m.pend -= est;
     dealDamage(m, dmg, { dt: S0.dt, crit });
     if (S0.slow) applySlow(m, S0.slow, 1.5);
     const sp = M.splash + (S0.splash || 0); if (sp > 0) for (const o of inRange(m.x, m.y, 50, false)) if (o !== m) dealDamage(o, dmg * sp, { dt: S0.dt, aoe: 1 });
